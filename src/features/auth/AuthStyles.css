@@ -1,0 +1,155 @@
+
+/* 1. Container Toàn trang */
+.auth-page-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #3b5998; /* Màu nền xanh đậm */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* 2. Container Form Chính (Nền trắng, bo góc) */
+.auth-form-container {
+    background-color: #ffffff;
+    padding: 40px 30px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 350px;
+    text-align: center;
+}
+
+/* 3. Tiêu đề */
+h2 {
+    color: #333333;
+    margin-bottom: 40px;
+    font-size: 28px;
+    font-weight: 700;
+}
+
+/* 4. Form */
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* 5. Nhóm Form (Sử dụng cho Input có Icon) */
+.form-group-icon {
+    position: relative;
+    margin-bottom: 15px;
+}
+
+/* Input chính */
+.form-group-icon input {
+    width: 100%;
+    padding: 15px 15px 15px 50px;
+    border: none;
+    background-color: #f7f7f7;
+    border-radius: 10px;
+    box-sizing: border-box;
+    font-size: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Icon */
+.input-icon {
+    position: absolute;
+    top: 50%;
+    left: 15px;
+    transform: translateY(-50%);
+    color: #999;
+    font-size: 18px;
+    height: 18px;
+    width: 18px;
+}
+
+/* 6. Nhóm Checkbox "Remember me" */
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 20px;
+}
+
+.checkbox-group input[type="checkbox"] {
+    margin-right: 8px;
+    width: 16px;
+    height: 16px;
+    accent-color: #ff8c42;
+}
+
+/* 7. Nút Chính (Gradient) */
+.auth-button {
+    background: linear-gradient(to right, #ffb347, #ff6b6b);
+    color: white;
+    padding: 15px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: 600;
+    text-transform: uppercase;
+    box-shadow: 0 4px 10px rgba(255, 120, 0, 0.3);
+    transition: opacity 0.3s;
+}
+
+.auth-button:hover:not(:disabled) {
+    opacity: 0.9;
+}
+
+/* 8. Liên kết Phụ (Forget Password) */
+.forgot-password-link {
+    display: block;
+    margin-top: 10px;
+    color: #777;
+    font-size: 14px;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.forgot-password-link:hover {
+    color: #007bff;
+}
+
+/* 9. Liên kết Đăng ký (Sign up now) */
+.signup-link-container {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+    font-size: 14px;
+    color: #777;
+}
+
+.signup-link {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s;
+}
+
+.signup-link:hover {
+    text-decoration: underline;
+}
+
+/* 10. Trạng thái Vô hiệu hóa/Loading */
+.auth-button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* Thông báo lỗi */
+.error-message {
+    color: #a94442;
+    background-color: #f2dede;
+    border: 1px solid #ebccd1;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    font-size: 14px;
+    text-align: center;
+}
