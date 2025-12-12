@@ -1,5 +1,4 @@
-import './App.css';
-import './features/AuthPages/AuthStyles.css';
+import './assets/css/AuthStyles.css';
 import MessengerScreen from './features/ChatPages/MessengerScreen';
 
 function App() {
