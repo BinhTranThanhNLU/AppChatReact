@@ -8,8 +8,12 @@ interface Message {
 
 interface ChatState {
     messages: Message[];
-    users: any[];
+    users: User[];
     currentRoom?: string;
+}
+
+interface User {
+    userName: string;
 }
 
 const initialState: ChatState = {

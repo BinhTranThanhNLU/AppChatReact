@@ -2,7 +2,10 @@
 import React, { useState, FormEvent } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUser, faLock } from "@fortawesome/free-solid-svg-icons";
-import { useNavigate } from "react-router-dom"; 
+import { data, useNavigate } from "react-router-dom";
+import { sendSocket, connectSocket } from "../../api/socket";
+import { useDispatch } from "react-redux";
+import { loginSuccess } from "../chat/AuthSlice";
 
 interface LoginScreenProps {
   switchToRegister: () => void;
@@ -17,35 +20,34 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ switchToRegister }) => {
 
   const navigate = useNavigate(); // ✅ THÊM
 
+  const dispatch = useDispatch();
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
 
-    try {
-      // Fake API
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+    connectSocket();
 
-      if (username !== "admin" || password !== "123456") {
-        throw new Error("Incorrect username or password.");
-      }
+    // gửi login
+    sendSocket({
+      action: "onchat",
+      data: {
+        event: "LOGIN",
+        data: {
+          user: username,
+          pass: password,
+        },
+      },
+    });
 
-      // ✅ LƯU TRẠNG THÁI LOGIN
-      localStorage.setItem("isLogin", "true");
+    // lưu user tạm để socket dùng
+    dispatch(loginSuccess({ user: username, reLoginCode: "" }));
 
-      console.log("Login successful:", { username, rememberMe });
-
-      // ✅ CHUYỂN SANG MESSENGER
+    // chờ server trả RE_LOGIN → rồi navigate
+    setTimeout(() => {
       navigate("/messenger");
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error
-          ? err.message
-          : "A system error has occurred.";
-      setError(errorMessage);
-    } finally {
-      setIsLoading(false);
-    }
+    }, 800);
   };
 
   const handleInputChange =
@@ -108,11 +110,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ switchToRegister }) => {
 
       <div className="signup-link-container">
         Not a member?
-        <a
-          href="#"
-          className="signup-link"
-          onClick={switchToRegister}
-        >
+        <a href="#" className="signup-link" onClick={switchToRegister}>
           Sign up now
         </a>
       </div>
