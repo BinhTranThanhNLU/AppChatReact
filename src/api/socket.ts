@@ -1,11 +1,10 @@
 import { store } from "../stores/Store";
 import { addMessage, setUsers } from "../features/chat/ChatSlice";
-import { loginSuccess } from "../features/chat/AuthSlice";
+import { loginSuccess, logout } from "../features/chat/AuthSlice";
 
 let socket: WebSocket | null = null;
 
 export const connectSocket = (onOpen?: () => void) => {
-
   if (socket) {
     if (socket.readyState === WebSocket.OPEN) {
       onOpen?.();
@@ -25,9 +24,11 @@ export const connectSocket = (onOpen?: () => void) => {
     console.log("📩 WS:", res);
 
     // LOGIN OK
-    if ((res.event === "LOGIN" ||res.event === "RE_LOGIN") && res.status === "success") {
-
-      const user = store.getState().auth.user!
+    if (
+      (res.event === "LOGIN" || res.event === "RE_LOGIN") &&
+      res.status === "success"
+    ) {
+      const user = store.getState().auth.user!;
 
       store.dispatch(
         loginSuccess({
@@ -39,14 +40,14 @@ export const connectSocket = (onOpen?: () => void) => {
       //RE_LOGIN lưu vào local storage
       localStorage.setItem(
         "auth",
-        JSON.stringify({user, code: res.data.RE_LOGIN_CODE})
+        JSON.stringify({ user, code: res.data.RE_LOGIN_CODE })
       );
 
       sendSocket({
         action: "onchat",
         data: { event: "GET_USER_LIST" },
       });
-      
+
       return;
     }
 
@@ -59,6 +60,13 @@ export const connectSocket = (onOpen?: () => void) => {
     // CHAT MESSAGE
     if (res.event === "SEND_CHAT") {
       store.dispatch(addMessage(res.data));
+      return;
+    }
+
+    // log out
+    if (res.event === "LOGOUT" && res.status === "success") {
+      store.dispatch(logout());
+      localStorage.removeItem("auth");
       return;
     }
   };
@@ -79,4 +87,18 @@ export const sendSocket = (payload: any) => {
   } else {
     console.error("WebSocket chưa kết nối");
   }
+};
+
+export const logoutSocket = () => {
+  if (socket && socket.readyState === WebSocket.OPEN) {
+    socket.send(
+      JSON.stringify({
+        action: "onchat",
+        data: { event: "LOGOUT" },
+      })
+    );
+  }
+
+  socket?.close();
+  socket = null;
 };

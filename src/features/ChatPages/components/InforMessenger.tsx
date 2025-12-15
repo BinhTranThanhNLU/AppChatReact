@@ -8,8 +8,22 @@ import {
   FileText,
   Lock,
 } from "lucide-react";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { logout } from "../../chat/AuthSlice";
+import { logoutSocket } from "../../../api/socket";
 
 const InforMessenger = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logoutSocket();
+    dispatch(logout()); 
+    localStorage.removeItem("auth");
+    navigate("/login"); 
+  };
+
   return (
     <div className="sidebar-right">
       <div className="profile-section">
@@ -69,6 +83,10 @@ const InforMessenger = () => {
         <div className="menu-item">
           <span>Quyền riêng tư và hỗ trợ</span>
           <ChevronDown size={20} />
+        </div>
+
+        <div className="menu-item" onClick={handleLogout} style={{ cursor: "pointer" }}>
+          <span>Đăng xuất</span>
         </div>
       </div>
     </div>
