@@ -10,9 +10,10 @@ import { ChatItem } from "../../../types/ChatType";
 
 interface ListMessengerProps {
   chatList: ChatItem[];
+  onSelectUser: (id: string) => void;
 }
 
-const ListMessenger:React.FC<ListMessengerProps> = ({ chatList }) => {
+const ListMessenger:React.FC<ListMessengerProps> = ({ chatList, onSelectUser }) => {
   return (
     <div className="sidebar-left">
       <div className="sidebar-header">
@@ -49,6 +50,7 @@ const ListMessenger:React.FC<ListMessengerProps> = ({ chatList }) => {
           <div
             key={chat.id}
             className={`chat-item ${chat.active ? "active" : ""}`}
+            onClick={() => onSelectUser(chat.id.toString())}
           >
             <div className="avatar-container">
               <img src={chat.avatar} alt="avt" className="avatar" />

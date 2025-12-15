@@ -1,11 +1,12 @@
 // src/features/AuthPages/LoginScreen.tsx
-import React, { useState, FormEvent } from "react";
+import React, { useState, FormEvent, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUser, faLock } from "@fortawesome/free-solid-svg-icons";
-import { data, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { sendSocket, connectSocket } from "../../api/socket";
 import { useDispatch } from "react-redux";
-import { loginSuccess } from "../chat/AuthSlice";
+import { useSelector } from "react-redux";
+import { RootState } from "../../stores/Store";
 
 interface LoginScreenProps {
   switchToRegister: () => void;
@@ -18,36 +19,29 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ switchToRegister }) => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const navigate = useNavigate(); // ✅ THÊM
+  const navigate = useNavigate();
 
   const dispatch = useDispatch();
+
+  const isLogin = useSelector((state: RootState) => state.auth.isLogin);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setError(null);
 
-    connectSocket();
-
-    // gửi login
-    sendSocket({
-      action: "onchat",
-      data: {
-        event: "LOGIN",
+    connectSocket(() => {
+      // gửi login
+      sendSocket({
+        action: "onchat",
         data: {
-          user: username,
-          pass: password,
+          event: "LOGIN",
+          data: {
+            user: username,
+            pass: password,
+          },
         },
-      },
+      });
     });
-
-    // lưu user tạm để socket dùng
-    dispatch(loginSuccess({ user: username, reLoginCode: "" }));
-
-    // chờ server trả RE_LOGIN → rồi navigate
-    setTimeout(() => {
-      navigate("/messenger");
-    }, 800);
   };
 
   const handleInputChange =
@@ -56,6 +50,13 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ switchToRegister }) => {
       setter(e.target.value);
       if (error) setError(null);
     };
+
+  useEffect(() => {
+    if (isLogin) {
+      setIsLoading(false);
+      navigate("/messenger");
+    }
+  }, [isLogin]);
 
   return (
     <div className="auth-form-container">

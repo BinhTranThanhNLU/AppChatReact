@@ -1,6 +1,4 @@
-import { faL } from "@fortawesome/free-solid-svg-icons";
 import { createSlice, PayloadAction} from "@reduxjs/toolkit"
-import { create } from "domain";
 
 interface AuthState {
     isLogin: boolean;

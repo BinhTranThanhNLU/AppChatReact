@@ -4,50 +4,62 @@ import { loginSuccess } from "../features/chat/AuthSlice";
 
 let socket: WebSocket | null = null;
 
-export const connectSocket = () => {
+export const connectSocket = (onOpen?: () => void) => {
+
+  if (socket) {
+    if (socket.readyState === WebSocket.OPEN) {
+      onOpen?.();
+    }
+    return;
+  }
+
   socket = new WebSocket("wss://chat.longapp.site/chat/chat");
 
   socket.onopen = () => {
     console.log("WebSocket connected successfully!!!");
+    onOpen?.(); //call back
   };
 
   socket.onmessage = (e) => {
     const res = JSON.parse(e.data);
-    console.log("WebSocket message:", res);
+    console.log("📩 WS:", res);
 
-    //1.LOGIN
-    if (res.event === "RE_LOGIN" && res.status === "success") {
+    // LOGIN OK
+    if ((res.event === "LOGIN" ||res.event === "RE_LOGIN") && res.status === "success") {
+
+      const user = store.getState().auth.user!
+
       store.dispatch(
         loginSuccess({
-          user: store.getState().auth.user!,
+          user,
           reLoginCode: res.data.RE_LOGIN_CODE,
         })
       );
 
-      //1.2.Get User List
+      //RE_LOGIN lưu vào local storage
+      localStorage.setItem(
+        "auth",
+        JSON.stringify({user, code: res.data.RE_LOGIN_CODE})
+      );
+
       sendSocket({
         action: "onchat",
-        data: {
-          event: "GET_USER_LIST",
-          data: {},
-        },
+        data: { event: "GET_USER_LIST" },
       });
+      
       return;
     }
 
-    //CHAT EVENT
+    // USER LIST
+    if (res.event === "GET_USER_LIST") {
+      store.dispatch(setUsers(res.data));
+      return;
+    }
 
-    const event = res.data?.event;
-    const data = res.data?.data;
-
-    switch (event) {
-      case "SEND_CHAT":
-        store.dispatch(addMessage(data));
-        break;
-
-      case "GET_USER_LIST":
-        store.dispatch(setUsers(data));
-        break;
+    // CHAT MESSAGE
+    if (res.event === "SEND_CHAT") {
+      store.dispatch(addMessage(res.data));
+      return;
     }
   };
 
@@ -57,6 +69,7 @@ export const connectSocket = () => {
 
   socket.onclose = () => {
     console.warn("WebSocket disconnected");
+    socket = null;
   };
 };
 
