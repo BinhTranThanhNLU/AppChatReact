@@ -1,50 +1,65 @@
-// features/chat/ChatSlice.ts
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-
 export interface Message {
-    userId: string; // Tên người gửi (Sender)
-    content: string;
-    time: string;
+  userId: string; // Tên người gửi (Sender)
+  content: string;
+  time: string;
 }
 
 export interface User {
-    userName: string;
+  name: string;
+}
+
+export interface Room {
+  roomName: string;
 }
 
 interface ChatState {
-    messages: Message[];
-    users: User[];
-    currentRoom?: string;
+  messages: Message[];
+  users: User[];
+  rooms: Room[];
+  currentRoom?: string;
+  currentChatType?: "people" | "room";
 }
 
-
 const initialState: ChatState = {
-    messages: [],
-    users: [],
+  messages: [],
+  users: [],
+  rooms: [],
 };
 
 const chatSlice = createSlice({
-    name: "chat",
-    initialState,
-    reducers: {
-        // Nhận 1 tin nhắn mới (real-time)
-        addMessage(state, action: PayloadAction<Message>) {
-            state.messages.push(action.payload);
-        },
-        setUsers(state, action: PayloadAction<User[]>) {
-            state.users = action.payload;
-        },
-        // Nhận danh sách tin nhắn cũ (history)
-        setMessages(state, action: PayloadAction<Message[]>) {
-            state.messages = action.payload;
-        },
-        addUser(state, action: PayloadAction<User>) {
-        state.users.push(action.payload);
+  name: "chat",
+  initialState,
+  reducers: {
+
+    // Nhận 1 tin nhắn mới (real-time)
+    addMessage(state, action: PayloadAction<Message>) {
+      state.messages.push(action.payload);
     },
+
+    // Nhận danh sách tin nhắn cũ (history)
+    setMessages(state, action: PayloadAction<Message[]>) {
+      state.messages = action.payload;
     },
+
+    addUser(state, action: PayloadAction<User>) {
+      state.users.push(action.payload);
+    },
+
+    setUsers(state, action: PayloadAction<User[]>) {
+      state.users = action.payload;
+    },
+
+    addRoom(state, action: PayloadAction<Room>) {
+        const exitst = state.rooms.find(room => room.roomName === action.payload.roomName);
+        if(!exitst) {
+            state.rooms.push(action.payload);
+        }
+    },
+  },
 });
 
-export const { addMessage, setUsers, setMessages, addUser } = chatSlice.actions;
+export const { addMessage, setUsers, setMessages, addUser, addRoom } = chatSlice.actions;
 
 export default chatSlice.reducer;
