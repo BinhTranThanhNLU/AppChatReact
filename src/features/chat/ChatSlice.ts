@@ -8,11 +8,20 @@ export interface Message {
     time: string;
 }
 
+
 export interface User {
     userName: string;
 }
 
+export interface Room {
+    id: string;
+    name: string;
+    lastMessage?: string;
+    lastTime?: string;
+}
+
 interface ChatState {
+    rooms: Room[];
     messages: Message[];
     users: User[];
     currentRoom?: string;
@@ -20,9 +29,12 @@ interface ChatState {
 
 
 const initialState: ChatState = {
+    rooms: [],
     messages: [],
     users: [],
+    currentRoom: undefined,
 };
+
 
 const chatSlice = createSlice({
     name: "chat",
@@ -40,11 +52,20 @@ const chatSlice = createSlice({
             state.messages = action.payload;
         },
         addUser(state, action: PayloadAction<User>) {
-        state.users.push(action.payload);
-    },
+            state.users.unshift(action.payload);
+        },
+        addRoom(state, action: PayloadAction<Room>) {
+            state.rooms.unshift(action.payload);
+        },
+
+        setRooms(state, action: PayloadAction<Room[]>) {
+            state.rooms = action.payload;
+        },
+
+        setCurrentRoom(state, action: PayloadAction<string>) {
+            state.currentRoom = action.payload;
+        },
     },
 });
-
-export const { addMessage, setUsers, setMessages, addUser } = chatSlice.actions;
-
+export const { addMessage, setUsers, setMessages, addUser, setCurrentRoom, addRoom,setRooms, } = chatSlice.actions;
 export default chatSlice.reducer;

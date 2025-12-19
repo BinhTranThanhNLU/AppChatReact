@@ -1,7 +1,7 @@
 // socket.ts
 import { store } from "../stores/Store";
 import { loginSuccess, logout } from "../features/chat/AuthSlice";
-import { addMessage, setUsers, setMessages, addUser } from "../features/chat/ChatSlice";
+import { addMessage, setUsers, setMessages, addUser, setCurrentRoom, addRoom, } from "../features/chat/ChatSlice";
 
 
 let socket: WebSocket | null = null;
@@ -65,6 +65,31 @@ export const connectSocket = (onOpen?: () => void) => {
             store.dispatch(addMessage(newMessage));
             return;
         }
+        if (res.event === "JOIN_ROOM") {
+            if (res.status !== "success") {
+                alert(res.message || "Không thể vào nhóm");
+                return;
+            }
+
+            const roomName = res.data.name;
+
+            const existed = store
+                .getState()
+                .chat.users
+                .some((u) => u.userName === roomName);
+
+            if (!existed) {
+                store.dispatch(
+                    addUser({
+                        userName: roomName,
+                    })
+                );
+            }
+
+            store.dispatch(setCurrentRoom(roomName));
+            return;
+        }
+
         if (res.event === "CREATE_ROOM" && res.status === "success") {
             const roomName = res.data.name;
 
@@ -73,6 +98,8 @@ export const connectSocket = (onOpen?: () => void) => {
                     userName: roomName,
                 })
             );
+
+            store.dispatch(setCurrentRoom(roomName));
 
             return;
         }
@@ -84,6 +111,7 @@ export const connectSocket = (onOpen?: () => void) => {
             return;
         }
     };
+
 
     socket.onerror = (err) => console.error("WebSocket error:", err);
     socket.onclose = () => {

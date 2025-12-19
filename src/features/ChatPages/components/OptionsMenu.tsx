@@ -1,6 +1,10 @@
 // screens/messenger/components/OptionsMenu.tsx
 import React, { useState } from "react";
 import { sendSocket } from "../../../api/socket";
+import { useSelector } from "react-redux";
+import { RootState } from "../../../stores/Store";
+
+
 import {
     MessageCircle,
     UserPlus,
@@ -14,8 +18,28 @@ interface OptionsMenuProps {
     onClose: () => void;
 }
 
+
+
 const OptionsMenu: React.FC<OptionsMenuProps> = ({ onClose }) => {
     const [mode, setMode] = useState<"default" | "create-group" | "join-group">("default");
+
+     const users = useSelector((state: RootState) => state.chat.users);
+
+    const hasJoinedGroup = (name: string) => {
+    const target = name.toLowerCase();
+
+    return users.some((u) => {
+        const userName =
+            typeof u?.userName === "string"
+                ? u.userName
+                : typeof (u as any)?.name === "string"
+                ? (u as any).name
+                : "";
+
+        return userName.toLowerCase() === target;
+    });
+};
+
     return (
         <div className="options-menu">
             {mode === "default" && (
@@ -65,11 +89,20 @@ const OptionsMenu: React.FC<OptionsMenuProps> = ({ onClose }) => {
                                 const value = (e.target as HTMLInputElement).value.trim();
                                 if (!value) return;
 
-                                // HIỆN TẠI: create & join đều dùng CREATE_ROOM
+                                // ĐÃ CÓ GROUP → KHÔNG JOIN
+                                if (mode === "join-group" && hasJoinedGroup(value)) {
+                                    alert("Bạn đã tham gia nhóm này rồi");
+                                    return;
+                                }
+
+                                // PHÂN BIỆT CREATE vs JOIN
+                                const eventName =
+                                    mode === "create-group" ? "CREATE_ROOM" : "JOIN_ROOM";
+
                                 sendSocket({
                                     action: "onchat",
                                     data: {
-                                        event: "CREATE_ROOM",
+                                        event: eventName,
                                         data: {
                                             name: value,
                                         },
@@ -83,6 +116,7 @@ const OptionsMenu: React.FC<OptionsMenuProps> = ({ onClose }) => {
                                 setMode("default");
                             }
                         }}
+
 
                     />
                 </div>

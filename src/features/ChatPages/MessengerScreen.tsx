@@ -1,6 +1,6 @@
 // screens/messenger/MessengerScreen.tsx
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import "../../assets/css/messenger.css";
 import ListMessenger from "./components/ListMessengers";
 import InforMessenger from "./components/InforMessenger";
@@ -15,8 +15,18 @@ const MessengerScreen: React.FC = () => {
     const users = useSelector((state: RootState) => state.chat.users);
     const messages = useSelector((state: RootState) => state.chat.messages);
     const currentUser = useSelector((state: RootState) => state.auth.user); // Lấy user hiện tại để so sánh
+    const currentRoom = useSelector(
+    (state: RootState) => state.chat.currentRoom
+);
+
 
     const [activeUserId, setActiveUserId] = useState<string | null>(null);
+    useEffect(() => {
+    if (currentRoom) {
+        setActiveUserId(currentRoom);
+    }
+}, [currentRoom]);
+
 
     // Map users -> ChatItem (như cũ)
     const chatList: ChatItem[] = useMemo(() => {
@@ -69,5 +79,6 @@ const MessengerScreen: React.FC = () => {
         </div>
     );
 };
+
 
 export default MessengerScreen;
