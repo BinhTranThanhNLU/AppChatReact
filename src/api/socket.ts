@@ -16,7 +16,7 @@ export const connectSocket = (onOpen?: () => void) => {
     socket = new WebSocket("wss://chat.longapp.site/chat/chat");
 
     socket.onopen = () => {
-        console.log("✅ WebSocket connected successfully!!!");
+        console.log("WebSocket connected successfully!!!");
         onOpen?.();
     };
 
@@ -73,9 +73,9 @@ export const connectSocket = (onOpen?: () => void) => {
         }
     };
 
-    socket.onerror = (err) => console.error("❌ WebSocket error:", err);
+    socket.onerror = (err) => console.error("WebSocket error:", err);
     socket.onclose = () => {
-        console.warn("⚠️ WebSocket disconnected");
+        console.warn("WebSocket disconnected");
         socket = null;
     };
 };
@@ -84,7 +84,7 @@ export const sendSocket = (payload: any) => {
     if (socket && socket.readyState === WebSocket.OPEN) {
         socket.send(JSON.stringify(payload));
     } else {
-        console.error("⚠️ WebSocket chưa kết nối, không thể gửi:", payload);
+        console.error("WebSocket chưa kết nối, không thể gửi:", payload);
     }
 };
 
