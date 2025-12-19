@@ -1,8 +1,7 @@
 export interface ChatItem {
-  id: string;
+  id: number;
   name: string;
   msg: string;
-  type: "people" | "room";
   time: string;
   active: boolean;
   avatar: string;

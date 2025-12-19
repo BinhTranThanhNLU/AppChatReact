@@ -1,3 +1,4 @@
+// screens/messenger/components/Messenger.tsx
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import {
   Send,
@@ -11,7 +12,7 @@ import {
   Mic,
 } from "lucide-react";
 import { Message } from "../../../features/chat/ChatSlice";
-import { useDispatch } from "react-redux";
+import { useDispatch } from "react-redux"; // Import dispatch
 import { addMessage } from "../../../features/chat/ChatSlice";
 import { sendSocket } from "../../../api/socket";
 
@@ -19,14 +20,12 @@ interface MessengerProps {
   messages: Message[];
   currentUser: string;
   currentChatUser: string | null;
-  chatType: "people" | "room";
 }
 
 const Messenger: React.FC<MessengerProps> = ({
   messages,
   currentUser,
   currentChatUser,
-  chatType,
 }) => {
   const [inputMsg, setInputMsg] = useState("");
   const endRef = useRef<HTMLDivElement>(null);
@@ -57,7 +56,7 @@ const Messenger: React.FC<MessengerProps> = ({
       data: {
         event: "SEND_CHAT",
         data: {
-          type: chatType,
+          type: "people",
           to: currentChatUser,
           mes: inputMsg,
         },
@@ -69,7 +68,7 @@ const Messenger: React.FC<MessengerProps> = ({
       content: inputMsg,
       time: new Date().toISOString(),
     };
-    //dispatch(addMessage(myMsg));
+    dispatch(addMessage(myMsg));
 
     setInputMsg("");
   };
@@ -124,7 +123,7 @@ const Messenger: React.FC<MessengerProps> = ({
           const isMe = senderName === myName;
 
           return (
-            <div key={`${msg.userId}-${msg.time}`} className={`message-row ${isMe ? "me" : "other"}`}>
+            <div key={index} className={`message-row ${isMe ? "me" : "other"}`}>
               {!isMe && (
                 <img
                   src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
