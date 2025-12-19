@@ -103,7 +103,7 @@ export const connectSocket = (onOpen?: () => void) => {
       return;
     }
 
-    //7. GET ROOM CHAT MESS: nhận lịch sử tin nhắn của room
+    //7. GET ROOM CHAT MES: nhận lịch sử tin nhắn của room
     if (res.event === "GET_ROOM_CHAT_MES") {
       const rawMessages = Array.isArray(res.data) ? res.data : [];
       const mappedMessages = rawMessages.map((message: any) => ({

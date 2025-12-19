@@ -18,7 +18,6 @@ interface ChatState {
   messages: Message[];
   users: User[];
   rooms: Room[];
-  currentRoom?: string;
   currentChatType?: "people" | "room";
 }
 

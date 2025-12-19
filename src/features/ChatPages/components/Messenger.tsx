@@ -12,7 +12,7 @@ import {
   Mic,
 } from "lucide-react";
 import { Message } from "../../../features/chat/ChatSlice";
-import { useDispatch } from "react-redux"; // Import dispatch
+import { useDispatch } from "react-redux";
 import { addMessage } from "../../../features/chat/ChatSlice";
 import { sendSocket } from "../../../api/socket";
 
@@ -20,12 +20,14 @@ interface MessengerProps {
   messages: Message[];
   currentUser: string;
   currentChatUser: string | null;
+  chatType: "people" | "room";
 }
 
 const Messenger: React.FC<MessengerProps> = ({
   messages,
   currentUser,
   currentChatUser,
+  chatType,
 }) => {
   const [inputMsg, setInputMsg] = useState("");
   const endRef = useRef<HTMLDivElement>(null);
@@ -56,7 +58,7 @@ const Messenger: React.FC<MessengerProps> = ({
       data: {
         event: "SEND_CHAT",
         data: {
-          type: "people",
+          type: chatType,
           to: currentChatUser,
           mes: inputMsg,
         },
