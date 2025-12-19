@@ -1,6 +1,7 @@
 // features/chat/ChatSlice.ts
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
+
 export interface Message {
     userId: string; // Tên người gửi (Sender)
     content: string;
@@ -16,6 +17,7 @@ interface ChatState {
     users: User[];
     currentRoom?: string;
 }
+
 
 const initialState: ChatState = {
     messages: [],
@@ -37,8 +39,12 @@ const chatSlice = createSlice({
         setMessages(state, action: PayloadAction<Message[]>) {
             state.messages = action.payload;
         },
+        addUser(state, action: PayloadAction<User>) {
+        state.users.push(action.payload);
+    },
     },
 });
 
-export const { addMessage, setUsers, setMessages } = chatSlice.actions;
+export const { addMessage, setUsers, setMessages, addUser } = chatSlice.actions;
+
 export default chatSlice.reducer;

@@ -1,7 +1,8 @@
 // socket.ts
 import { store } from "../stores/Store";
 import { loginSuccess, logout } from "../features/chat/AuthSlice";
-import { addMessage, setUsers, setMessages } from "../features/chat/ChatSlice";
+import { addMessage, setUsers, setMessages, addUser } from "../features/chat/ChatSlice";
+
 
 let socket: WebSocket | null = null;
 
@@ -16,7 +17,7 @@ export const connectSocket = (onOpen?: () => void) => {
     socket = new WebSocket("wss://chat.longapp.site/chat/chat");
 
     socket.onopen = () => {
-        console.log("✅ WebSocket connected successfully!!!");
+        console.log("WebSocket connected successfully!!!");
         onOpen?.();
     };
 
@@ -64,6 +65,17 @@ export const connectSocket = (onOpen?: () => void) => {
             store.dispatch(addMessage(newMessage));
             return;
         }
+        if (res.event === "CREATE_ROOM" && res.status === "success") {
+            const roomName = res.data.name;
+
+            store.dispatch(
+                addUser({
+                    userName: roomName,
+                })
+            );
+
+            return;
+        }
 
         // LOGOUT
         if (res.event === "LOGOUT" && res.status === "success") {
@@ -73,9 +85,9 @@ export const connectSocket = (onOpen?: () => void) => {
         }
     };
 
-    socket.onerror = (err) => console.error("❌ WebSocket error:", err);
+    socket.onerror = (err) => console.error("WebSocket error:", err);
     socket.onclose = () => {
-        console.warn("⚠️ WebSocket disconnected");
+        console.warn("WebSocket disconnected");
         socket = null;
     };
 };
@@ -84,7 +96,7 @@ export const sendSocket = (payload: any) => {
     if (socket && socket.readyState === WebSocket.OPEN) {
         socket.send(JSON.stringify(payload));
     } else {
-        console.error("⚠️ WebSocket chưa kết nối, không thể gửi:", payload);
+        console.error("WebSocket chưa kết nối, không thể gửi:", payload);
     }
 };
 
