@@ -121,6 +121,30 @@ export const connectSocket = (onOpen?: () => void) => {
       localStorage.removeItem("auth");
       return;
     }
+
+    // 9. CHECK_USER (Tìm user để chat)
+    if (res.event === "CHECK_USER" && res.status === "success") {
+      const user = res.data; // { name: "ti" }
+
+      // Tránh add trùng user
+      const users = store.getState().chat.users;
+      const exists = users.find((u) => u.name === user.name);
+
+      if (!exists) {
+        store.dispatch(addUser(user));
+      }
+      return;
+    }
+
+    // AUTH ERROR
+    if (res.event === "AUTH" && res.status === "error") {
+      console.warn("⚠️ AUTH ERROR:", res.mes);
+
+      // toast.warning("Người dùng chưa online");
+      return;
+    }
+
+    
   };
 
   socket.onerror = (err) => console.error("WebSocket error:", err);

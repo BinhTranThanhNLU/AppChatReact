@@ -4,6 +4,7 @@ import OptionsMenu from "./OptionsMenu";
 import "../../../assets/css/messenger.css";
 import { Search, MoreHorizontal, Edit, Image as ImageIcon } from "lucide-react";
 import { ChatItem } from "../../../types/ChatType";
+import { sendSocket } from "../../../api/socket";
 
 interface ListMessengerProps {
   chatList: ChatItem[];
@@ -19,6 +20,30 @@ const ListMessenger: React.FC<ListMessengerProps> = ({
   const menuRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
+  // tim kiem user
+  const [keyword, setKeyword] = useState("");
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key !== "Enter") return;
+
+    const value = keyword.trim();
+    if (!value) return;
+
+    console.log("⏎ ENTER SEARCH:", value);
+
+    sendSocket({
+      action: "onchat",
+      data: {
+        event: "CHECK_USER",
+        data: {
+          user: value,
+        },
+      },
+    });
+
+    setKeyword("");
+  };
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
@@ -28,6 +53,7 @@ const ListMessenger: React.FC<ListMessengerProps> = ({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatList.length]);
@@ -59,6 +85,9 @@ const ListMessenger: React.FC<ListMessengerProps> = ({
             type="text"
             className="search-input"
             placeholder="Tìm kiếm trên Messenger"
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
+            onKeyDown={handleSearchKeyDown}
           />
         </div>
 

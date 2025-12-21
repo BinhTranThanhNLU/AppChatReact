@@ -1,11 +1,11 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import "../../assets/css/messenger.css";
 import ListMessenger from "./components/ListMessengers";
 import InforMessenger from "./components/InforMessenger";
 import Messenger from "./components/Messenger";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../stores/Store";
-import { sendSocket } from "../../api/socket";
+import { connectSocket, sendSocket } from "../../api/socket";
 import { setMessages } from "../chat/ChatSlice";
 
 const MessengerScreen: React.FC = () => {
@@ -24,36 +24,36 @@ const MessengerScreen: React.FC = () => {
   const chatList: any = useMemo(() => {
     if (!users || !Array.isArray(users)) return [];
 
-    const peopleChats = users.map(
-      (user) => ({
-        id: user.name,
-        name: user.name,
-        msg: "",
-        time: "",
-        active: activeUserId === user.name,
-        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(
-          user.name
-        )}&background=random`,
-        type: "people" as const,
-      })
-    );
+    const peopleChats = users.map((user) => ({
+      id: user.name,
+      name: user.name,
+      msg: "",
+      time: "",
+      active: activeUserId === user.name,
+      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(
+        user.name
+      )}&background=random`,
+      type: "people" as const,
+    }));
 
-    const roomChats = rooms.map(
-      (room) => ({
-        id: room.roomName,
-        name: room.roomName,
-        msg: "",
-        time: "",
-        active: activeUserId === room.roomName,
-        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(
-          room.roomName
-        )}&background=random`,
-        type: "room" as const,
-      })
-    );
+    const roomChats = rooms.map((room) => ({
+      id: room.roomName,
+      name: room.roomName,
+      msg: "",
+      time: "",
+      active: activeUserId === room.roomName,
+      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(
+        room.roomName
+      )}&background=random`,
+      type: "room" as const,
+    }));
 
     return [...roomChats, ...peopleChats];
   }, [users, rooms, activeUserId]);
+
+  useEffect(() => {
+    connectSocket();
+  }, []);
 
   // Xử lý khi bấm vào user va room
   const handleSelectChat = (id: string, type: "people" | "room") => {
