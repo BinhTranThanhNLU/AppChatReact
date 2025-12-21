@@ -3,7 +3,6 @@ import "../../assets/css/messenger.css";
 import ListMessenger from "./components/ListMessengers";
 import InforMessenger from "./components/InforMessenger";
 import Messenger from "./components/Messenger";
-import { ChatItem } from "../../types/ChatType";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../stores/Store";
 import { sendSocket } from "../../api/socket";
