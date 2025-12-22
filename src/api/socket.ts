@@ -48,17 +48,20 @@ export const connectSocket = (onOpen?: () => void) => {
 
     // 2. GET USER LIST
     if (res.event === "GET_USER_LIST") {
+      console.log("🔥 Dữ liệu User List từ Server:", res.data);
       store.dispatch(setUsers(res.data));
       return;
     }
 
     // 3. GET_PEOPLE_CHAT_MES (Lịch sử tin nhắn)
     if (res.event === "GET_PEOPLE_CHAT_MES") {
+      console.log("🔥 Dữ liệu GET_PEOPLE_CHAT_MES từ Server:", res.data);
       const rawMessages = Array.isArray(res.data) ? res.data : [];
 
       const mappedMessages = rawMessages.map((msg: any) => ({
         // Ưu tiên lấy 'name', nếu không có thì fallback cẩn thận
         userId: msg.name,
+        to: msg.to,
         content: msg.mes,
         time: msg.createAt || new Date().toISOString(),
       }));

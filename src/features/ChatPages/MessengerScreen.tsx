@@ -27,8 +27,8 @@ const MessengerScreen: React.FC = () => {
     const peopleChats = users.map((user) => ({
       id: user.name,
       name: user.name,
-      msg: "",
-      time: "",
+      msg: user.mes || "",
+      time: user.createAt ? new Date(user.createAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })  : "",
       active: activeUserId === user.name,
       avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(
         user.name

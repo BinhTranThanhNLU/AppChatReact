@@ -11,10 +11,10 @@ import {
   Image as ImageIcon,
   Mic,
 } from "lucide-react";
-import { Message } from "../../../features/chat/ChatSlice";
-import { useDispatch } from "react-redux";
-import { addMessage } from "../../../features/chat/ChatSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { addMessage, Message } from "../../../features/chat/ChatSlice";
 import { sendSocket } from "../../../api/socket";
+import { loginSuccess } from "../../chat/AuthSlice";
 
 interface MessengerProps {
   messages: Message[];
@@ -58,6 +58,20 @@ const Messenger: React.FC<MessengerProps> = ({
       return new Date(a.time).getTime() - new Date(b.time).getTime();
     });
   }, [messages, currentUser, currentChatUser, chatType]);
+
+  useEffect(() => {
+    if (!currentUser) {
+      const storedAuth = localStorage.getItem("auth");
+      if (storedAuth) {
+        try {
+          const { user, code } = JSON.parse(storedAuth);
+          dispatch(loginSuccess({ user: user, reLoginCode: code }));
+        } catch (error) {
+          console.error("Lỗi parse auth từ localStorage", error);
+        }
+      }
+    }
+  }, [currentUser, dispatch]);
 
   // 2. TỰ ĐỘNG CUỘN XUỐNG DƯỚI
   useEffect(() => {
