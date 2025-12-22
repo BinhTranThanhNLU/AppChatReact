@@ -69,11 +69,22 @@ export const connectSocket = (onOpen?: () => void) => {
 
     // 4. SEND_CHAT (Nhận tin nhắn Real-time từ người khác hoặc Server confirm)
     if (res.event === "SEND_CHAT") {
+
+      console.log("🔥 Socket receive:", res.data);
+
+      const state = store.getState();
+      const currentUser = state.auth.user;
+
+      if (currentUser && res.data.name === currentUser) {
+         return;
+      }
+      
       const newMessage = {
         userId: res.data.name, // Đây là người gửi tin nhắn này
         content: res.data.mes,
         time: new Date().toISOString(),
       };
+
       store.dispatch(addMessage(newMessage));
       return;
     }

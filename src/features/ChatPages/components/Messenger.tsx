@@ -36,12 +36,28 @@ const Messenger: React.FC<MessengerProps> = ({
   // 1. SẮP XẾP TIN NHẮN (Cũ trên - Mới dưới)
   const sortedMessages = useMemo(() => {
     if (!messages) return [];
-    return [...messages].sort((a, b) => {
-      const t1 = new Date(a.time).getTime() || 0;
-      const t2 = new Date(b.time).getTime() || 0;
-      return t1 - t2;
+
+    const filtered = messages.filter((msg) => {
+      const sender = String(msg.userId || "").trim();
+      const receiver = String(msg.to || "").trim(); // Lấy người nhận
+
+      const me = String(currentUser || "").trim();
+      const other = String(currentChatUser || "").trim();
+
+      if (chatType === "room") {
+        return true;
+      }
+
+      const isFromOther = sender === other;
+      const isMeToOther = sender === me && receiver === other;
+
+      return isFromOther || (msg.to ? isMeToOther : sender === me);
     });
-  }, [messages]);
+
+    return filtered.sort((a, b) => {
+      return new Date(a.time).getTime() - new Date(b.time).getTime();
+    });
+  }, [messages, currentUser, currentChatUser, chatType]);
 
   // 2. TỰ ĐỘNG CUỘN XUỐNG DƯỚI
   useEffect(() => {
@@ -50,7 +66,17 @@ const Messenger: React.FC<MessengerProps> = ({
 
   // 3. GỬI TIN NHẮN
   const handleSend = () => {
-    if (!inputMsg.trim() || !currentChatUser) return;
+    const trimmedMsg = inputMsg.trim();
+
+    // Check điều kiện
+    if (!trimmedMsg || !currentChatUser) return;
+
+    const messageData: Message = {
+      userId: currentUser,
+      to: currentChatUser, // Lưu lại gửi cho ai
+      content: trimmedMsg,
+      time: new Date().toISOString(),
+    };
 
     // Gửi qua Socket
     sendSocket({
@@ -60,17 +86,12 @@ const Messenger: React.FC<MessengerProps> = ({
         data: {
           type: chatType,
           to: currentChatUser,
-          mes: inputMsg,
+          mes: trimmedMsg, // Gửi chuỗi đã clean
         },
       },
     });
 
-    const myMsg: Message = {
-      userId: currentUser,
-      content: inputMsg,
-      time: new Date().toISOString(),
-    };
-    dispatch(addMessage(myMsg));
+    dispatch(addMessage(messageData));
 
     setInputMsg("");
   };

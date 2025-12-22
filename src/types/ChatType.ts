@@ -16,3 +16,4 @@ export interface MessageItem {
   avatar?: string;
   reaction?: string | null;
 }
+

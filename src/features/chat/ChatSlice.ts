@@ -1,7 +1,8 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 export interface Message {
-  userId: string; // Tên người gửi (Sender)
+  userId: string; // Người gửi
+  to?: string;    // Người nhận
   content: string;
   time: string;
 }
