@@ -51,9 +51,27 @@ const MessengerScreen: React.FC = () => {
     return [...roomChats, ...peopleChats];
   }, [users, rooms, activeUserId]);
 
-  useEffect(() => {
-    connectSocket();
-  }, []);
+    useEffect(() => {
+        // Truyền callback vào connectSocket
+        connectSocket(() => {
+            console.log("Socket Connected -> Sending RE_LOGIN...");
+            const str = localStorage.getItem("auth");
+            if (str) {
+                const auth = JSON.parse(str);
+                // Gửi thông tin đăng nhập lại để Server biết socket này của ai
+                sendSocket({
+                    action: "onchat",
+                    data: {
+                        event: "RE_LOGIN",
+                        data: {
+                            user: auth.user,
+                            code: auth.code, // Đảm bảo server cần code này để xác thực
+                        },
+                    },
+                });
+            }
+        });
+    }, []);
 
   // Xử lý khi bấm vào user va room
   const handleSelectChat = (id: string, type: "people" | "room") => {
