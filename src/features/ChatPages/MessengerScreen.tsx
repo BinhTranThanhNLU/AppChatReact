@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../stores/Store";
 import { connectSocket, sendSocket } from "../../api/socket";
 import { setMessages } from "../chat/ChatSlice";
+import { loginSuccess } from "../chat/AuthSlice";
 
 const MessengerScreen: React.FC = () => {
   // Lấy data từ Redux
@@ -28,7 +29,12 @@ const MessengerScreen: React.FC = () => {
       id: user.name,
       name: user.name,
       msg: user.mes || "",
-      time: user.createAt ? new Date(user.createAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })  : "",
+      time: user.createAt
+        ? new Date(user.createAt).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          })
+        : "",
       active: activeUserId === user.name,
       avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(
         user.name
@@ -51,27 +57,35 @@ const MessengerScreen: React.FC = () => {
     return [...roomChats, ...peopleChats];
   }, [users, rooms, activeUserId]);
 
-    useEffect(() => {
-        // Truyền callback vào connectSocket
+  useEffect(() => {
+    const storedAuth = localStorage.getItem("auth");
+
+    if (storedAuth) {
+      try {
+        const { user, code } = JSON.parse(storedAuth);
+
+        // Dispatch vào Redux để restore state
+        dispatch(loginSuccess({ user, reLoginCode: code }));
+
+        // Connect socket và gửi RE_LOGIN
         connectSocket(() => {
-            console.log("Socket Connected -> Sending RE_LOGIN...");
-            const str = localStorage.getItem("auth");
-            if (str) {
-                const auth = JSON.parse(str);
-                // Gửi thông tin đăng nhập lại để Server biết socket này của ai
-                sendSocket({
-                    action: "onchat",
-                    data: {
-                        event: "RE_LOGIN",
-                        data: {
-                            user: auth.user,
-                            code: auth.code, // Đảm bảo server cần code này để xác thực
-                        },
-                    },
-                });
-            }
+          console.log("✅ Socket Connected -> Sending RE_LOGIN...");
+          sendSocket({
+            action: "onchat",
+            data: {
+              event: "RE_LOGIN",
+              data: {
+                user: user,
+                code: code,
+              },
+            },
+          });
         });
-    }, []);
+      } catch (error) {
+        console.error("Lỗi parse auth từ localStorage:", error);
+      }
+    }
+  }, [dispatch]);
 
   // Xử lý khi bấm vào user va room
   const handleSelectChat = (id: string, type: "people" | "room") => {

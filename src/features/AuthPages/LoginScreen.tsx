@@ -7,6 +7,7 @@ import { sendSocket, connectSocket } from "../../api/socket";
 import { useDispatch } from "react-redux";
 import { useSelector } from "react-redux";
 import { RootState } from "../../stores/Store";
+import { setUser } from "../chat/AuthSlice";
 
 interface LoginScreenProps {
   switchToRegister: () => void;
@@ -20,17 +21,27 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ switchToRegister }) => {
   const [error, setError] = useState<string | null>(null);
 
   const navigate = useNavigate();
-
   const dispatch = useDispatch();
 
   const isLogin = useSelector((state: RootState) => state.auth.isLogin);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+
+    if (!username.trim() || !password.trim()) {
+      setError("Vui lòng nhập đầy đủ thông tin!");
+      return;
+    }
+
     setIsLoading(true);
+    setError(null);
+
+    dispatch(setUser(username));
 
     connectSocket(() => {
-      // gửi login
+      console.log("Socket connected, sending LOGIN for user:", username);
+
+      // Gửi login
       sendSocket({
         action: "onchat",
         data: {

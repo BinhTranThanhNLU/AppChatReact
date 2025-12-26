@@ -44,3 +44,51 @@
               state.users.unshift(user);
           }
       },
+
+if (
+      (res.event === "LOGIN" || res.event === "RE_LOGIN") &&
+      res.status === "success"
+    ) {
+      const user = store.getState().auth.user!;
+      store.dispatch(
+        loginSuccess({ user, reLoginCode: res.data.RE_LOGIN_CODE })
+      );
+      localStorage.setItem(
+        "auth",
+        JSON.stringify({ user, code: res.data.RE_LOGIN_CODE })
+      );
+
+      // Lấy danh sách user ngay khi login xong
+      sendSocket({ action: "onchat", data: { event: "GET_USER_LIST" } });
+      return;
+    }
+
+if (res.event === "GET_USER_LIST") {
+      console.log("🔥 Dữ liệu User List từ Server:", res.data);
+      store.dispatch(setUsers(res.data));
+      return;
+    }
+
+
+
+    useEffect(() => {
+        // Truyền callback vào connectSocket
+        connectSocket(() => {
+            console.log("Socket Connected -> Sending RE_LOGIN...");
+            const str = localStorage.getItem("auth");
+            if (str) {
+                const auth = JSON.parse(str);
+                // Gửi thông tin đăng nhập lại để Server biết socket này của ai
+                sendSocket({
+                    action: "onchat",
+                    data: {
+                        event: "RE_LOGIN",
+                        data: {
+                            user: auth.user,
+                            code: auth.code, // Đảm bảo server cần code này để xác thực
+                        },
+                    },
+                });
+            }
+        });
+    }, []);

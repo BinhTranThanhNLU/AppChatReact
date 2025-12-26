@@ -39,35 +39,69 @@ export const connectSocket = (onOpen?: () => void) => {
 
   socket.onmessage = (e) => {
     const res = JSON.parse(e.data);
-    // 1. LOGIN OK
-    if (
-      (res.event === "LOGIN" || res.event === "RE_LOGIN") &&
-      res.status === "success"
-    ) {
-      const user = store.getState().auth.user!;
-      store.dispatch(
-        loginSuccess({ user, reLoginCode: res.data.RE_LOGIN_CODE })
-      );
-      localStorage.setItem(
-        "auth",
-        JSON.stringify({ user, code: res.data.RE_LOGIN_CODE })
-      );
+    // 1. LOGIN OK hoặc RE_LOGIN OK
+    if ((res.event === "LOGIN" || res.event === "RE_LOGIN") && res.status === "success") {
+        // ✅ FIX:  Lấy username từ state Redux (đã lưu trước đó)
+        let username = store.getState().auth.user;
+        
+        // Nếu không có trong Redux, thử lấy từ localStorage (trường hợp RE_LOGIN)
+        if (!username) {
+            const storedAuth = localStorage.getItem("auth");
+            if (storedAuth) {
+                try {
+                    const parsed = JSON.parse(storedAuth);
+                    username = parsed. user;
+                } catch (error) {
+                    console.error("❌ Lỗi parse auth từ localStorage", error);
+                }
+            }
+        }
 
-      // Lấy danh sách user ngay khi login xong
-      sendSocket({ action: "onchat", data: { event: "GET_USER_LIST" } });
-      return;
+        // ✅ Kiểm tra username
+        if (! username) {
+            console.error("❌ Không tìm thấy username để lưu RE_LOGIN_CODE");
+            return;
+        }
+
+        console.log("✅ LOGIN/RE_LOGIN thành công cho user:", username);
+
+        // Dispatch loginSuccess với reLoginCode mới
+        store.dispatch(
+            loginSuccess({ 
+                user: username, 
+                reLoginCode: res.data.RE_LOGIN_CODE 
+            })
+        );
+
+        // Lưu vào localStorage
+        localStorage.setItem(
+            "auth",
+            JSON.stringify({ user: username, code: res.data.RE_LOGIN_CODE })
+        );
+
+        // Lấy danh sách user
+        console.log("📡 Requesting GET_USER_LIST.. .");
+        sendSocket({ action: "onchat", data: { event: "GET_USER_LIST" } });
+        return;
     }
 
     // 2. GET USER LIST
     if (res.event === "GET_USER_LIST") {
-      console.log("🔥 Dữ liệu User List từ Server:", res.data);
-      store.dispatch(setUsers(res.data));
-      return;
+        console.log("Dữ liệu User List từ Server:", res.data);
+        
+        if (!res.data || !Array.isArray(res.data)) {
+            console.error("GET_USER_LIST trả về data không hợp lệ:", res.data);
+            return;
+        }
+        
+        store.dispatch(setUsers(res.data));
+        console.log("Đã cập nhật user list vào Redux, total:", res.data.length);
+        return;
     }
 
     // 3. GET_PEOPLE_CHAT_MES (Lịch sử tin nhắn)
     if (res.event === "GET_PEOPLE_CHAT_MES") {
-      console.log("🔥 Dữ liệu GET_PEOPLE_CHAT_MES từ Server:", res.data);
+      console.log("Dữ liệu GET_PEOPLE_CHAT_MES từ Server:", res.data);
       const rawMessages = Array.isArray(res.data) ? res.data : [];
 
       const mappedMessages = rawMessages.map((msg: any) => ({
@@ -84,7 +118,7 @@ export const connectSocket = (onOpen?: () => void) => {
 
     // 4. SEND_CHAT (Nhận tin nhắn Real-time từ người khác hoặc Server confirm)
     if (res.event === "SEND_CHAT") {
-      console.log("🔥 Socket receive:", res.data);
+      console.log("Socket receive:", res.data);
 
       const state = store.getState();
       const currentUser = state.auth.user;
