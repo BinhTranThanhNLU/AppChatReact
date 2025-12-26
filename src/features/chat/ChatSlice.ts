@@ -2,14 +2,14 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 export interface Message {
   userId: string; // Người gửi
-  to?: string;    // Người nhận
+  to?: string; // Người nhận
   content: string;
   time: string;
 }
 
 export interface User {
   name: string;
-  mes?: string;      // Thêm dòng này: chứa nội dung tin nhắn cuối
+  mes?: string; // Thêm dòng này: chứa nội dung tin nhắn cuối
   createAt?: string; // Thêm dòng này: chứa thời gian
 }
 
@@ -34,53 +34,43 @@ const chatSlice = createSlice({
   name: "chat",
   initialState,
   reducers: {
+    addMessage(state, action: PayloadAction<Message>) {
+      const { userId, content, time, to } = action.payload;
 
-    // addMessage(state, action: PayloadAction<Message>) {
-    //   const { userId, content, time, to } = action.payload;
-    //
-    //   // 1. Thêm vào danh sách tin nhắn chi tiết (như cũ)
-    //   state.messages.push(action.payload);
-    //
-    //   // 2. CẬP NHẬT "PREVIEW" Ở SIDEBAR (Logic mới thêm)
-    //   // Tìm user trong danh sách users để cập nhật tin nhắn cuối cùng
-    //   const targetUserName = userId === "me" ? to : userId; // Logic xác định user cần update
-    //
-    //   const userIndex = state.users.findIndex(u => u.name === targetUserName || u.name === userId || u.name === to);
-    //
-    //   if (userIndex !== -1) {
-    //     // Cập nhật nội dung và thời gian cho user đó trong sidebar
-    //     state.users[userIndex].mes = content;
-    //     state.users[userIndex].createAt = time;
-    //
-    //     // (Tùy chọn) Đưa user này lên đầu danh sách
-    //     const user = state.users.splice(userIndex, 1)[0];
-    //     state.users.unshift(user);
-    //   }
-    // },
-      addMessage(state, action: PayloadAction<Message>) {
-          const { userId, content, time, to } = action.payload;
+      // 1. Thêm vào danh sách tin nhắn chi tiết
+      state.messages.push(action.payload);
 
-          // 1. Thêm vào danh sách tin nhắn chi tiết (như cũ)
-          state.messages.push(action.payload);
+      // 2. CẬP NHẬT "PREVIEW" Ở SIDEBAR
+      const currentUser = userId; // Người gửi
+      const targetUser = to; // Người nhận
 
-          // 2. CẬP NHẬT "PREVIEW" Ở SIDEBAR
-          // Logic sửa: Nếu userId là người gửi tin đến (khác mình), update người đó.
-          // Nếu mình là người gửi (userId == to?), logic cần check kỹ hơn.
-          // Cách đơn giản nhất: Tìm user có tên trùng với userId (người gửi) HOẶC to (người nhận)
+      // ✅ FIX:  Xác định user nào cần update trong sidebar
+      let userToUpdate: string | undefined;
 
-          // Tìm index của người cần update trong danh sách users
-          const userIndex = state.users.findIndex(u => u.name === userId || u.name === to);
+      // Nếu mình gửi (userId === current logged user), update người nhận
+      // Nếu người khác gửi cho mình, update người gửi
+      const myUsername = state.users[0]?.name; // Hoặc lấy từ auth state
 
-          if (userIndex !== -1) {
-              // Cập nhật nội dung và thời gian
-              state.users[userIndex].mes = content;
-              state.users[userIndex].createAt = time;
+      if (currentUser === myUsername) {
+        userToUpdate = targetUser; // Mình gửi -> update người nhận
+      } else {
+        userToUpdate = currentUser; // Người khác gửi -> update người gửi
+      }
 
-              // Đưa user này lên đầu danh sách
-              const user = state.users.splice(userIndex, 1)[0];
-              state.users.unshift(user);
-          }
-      },
+      if (!userToUpdate) return;
+
+      const userIndex = state.users.findIndex((u) => u.name === userToUpdate);
+
+      if (userIndex !== -1) {
+        // Cập nhật nội dung và thời gian
+        state.users[userIndex].mes = content;
+        state.users[userIndex].createAt = time;
+
+        // Đưa user này lên đầu danh sách
+        const user = state.users.splice(userIndex, 1)[0];
+        state.users.unshift(user);
+      }
+    },
     // Nhận danh sách tin nhắn cũ (history)
     setMessages(state, action: PayloadAction<Message[]>) {
       state.messages = action.payload;
@@ -95,14 +85,17 @@ const chatSlice = createSlice({
     },
 
     addRoom(state, action: PayloadAction<Room>) {
-        const exitst = state.rooms.find(room => room.roomName === action.payload.roomName);
-        if(!exitst) {
-            state.rooms.push(action.payload);
-        }
+      const exitst = state.rooms.find(
+        (room) => room.roomName === action.payload.roomName
+      );
+      if (!exitst) {
+        state.rooms.push(action.payload);
+      }
     },
   },
 });
 
-export const { addMessage, setUsers, setMessages, addUser, addRoom } = chatSlice.actions;
+export const { addMessage, setUsers, setMessages, addUser, addRoom } =
+  chatSlice.actions;
 
 export default chatSlice.reducer;
