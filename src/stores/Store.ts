@@ -4,29 +4,29 @@ import storage from "redux-persist/lib/storage";
 import chatReducer from "../features/chat/ChatSlice";
 import authReducer from "../features/chat/AuthSlice";
 
-// ✅ Config persist
+// Config persist
 const persistConfig = {
     key: 'root',
     storage,
     whitelist: ['chat', 'auth'], // Persist cả chat và auth
 };
 
-// ✅ Combine reducers
+// Combine reducers
 const rootReducer = combineReducers({
     chat: chatReducer,
     auth: authReducer,
 });
 
-// ✅ Tạo persisted reducer
+// Tạo persisted reducer
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 
-// ✅ Config store
+// Config store
 export const store = configureStore({
     reducer: persistedReducer,
     middleware:  (getDefaultMiddleware) =>
         getDefaultMiddleware({
             serializableCheck: {
-                // ✅ Bỏ qua các action của redux-persist
+                // Bỏ qua các action của redux-persist
                 ignoredActions: [
                     'persist/PERSIST',
                     'persist/REHYDRATE',

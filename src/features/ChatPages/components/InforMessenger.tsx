@@ -12,27 +12,56 @@ import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { logout } from "../../chat/AuthSlice";
 import { logoutSocket } from "../../../api/socket";
+import { useSelector } from "react-redux";
+import { RootState } from "../../../stores/Store";
 
 const InforMessenger = () => {
+
+  const activeChat = useSelector((state: RootState) => state.chat.activeChat);
+  const users = useSelector((state: RootState) => state.chat.users);
+  const rooms = useSelector((state: RootState) => state.chat.rooms);
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  let displayName = "Chưa chọn đoạn chat";
+  let avatarUrl = "https://ui-avatars.com/api/?name=Chat";
+
+  if (activeChat) {
+    if (activeChat.type === "people") {
+      const user = users.find((u) => u.name === activeChat.id);
+      if (user) {
+        displayName = user.name;
+        avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+          user.name
+        )}&background=random`;
+      }
+    }
+
+    if (activeChat.type === "room") {
+      displayName = activeChat.id;
+      avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+        activeChat.id
+      )}&background=random`;
+    }
+  }
+
   const handleLogout = () => {
     logoutSocket();
-    dispatch(logout()); 
+    dispatch(logout());
     localStorage.removeItem("auth");
-    navigate("/login"); 
+    navigate("/login");
   };
 
   return (
     <div className="sidebar-right">
       <div className="profile-section">
         <img
-          src="https://i.pravatar.cc/150?img=11"
+          src={avatarUrl}
           alt="profile"
           className="profile-avatar-large"
         />
-        <h2 className="profile-name">Gia Huy Truong</h2>
+        <h2 className="profile-name">{displayName}</h2>
         <div className="encryption-tag">
           <Lock size={12} /> Được mã hóa đầu cuối
         </div>
@@ -85,7 +114,11 @@ const InforMessenger = () => {
           <ChevronDown size={20} />
         </div>
 
-        <div className="menu-item" onClick={handleLogout} style={{ cursor: "pointer" }}>
+        <div
+          className="menu-item"
+          onClick={handleLogout}
+          style={{ cursor: "pointer" }}
+        >
           <span>Đăng xuất</span>
         </div>
       </div>

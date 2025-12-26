@@ -22,12 +22,17 @@ interface ChatState {
   users: User[];
   rooms: Room[];
   currentChatType?: "people" | "room";
+  activeChat?: {
+    id: string;
+    type: "people" | "room";
+  };
 }
 
 const initialState: ChatState = {
   messages: [],
   users: [],
   rooms: [],
+  activeChat: undefined,
 };
 
 const chatSlice = createSlice({
@@ -44,7 +49,7 @@ const chatSlice = createSlice({
       const currentUser = userId; // Người gửi
       const targetUser = to; // Người nhận
 
-      // ✅ FIX:  Xác định user nào cần update trong sidebar
+      // FIX:  Xác định user nào cần update trong sidebar
       let userToUpdate: string | undefined;
 
       // Nếu mình gửi (userId === current logged user), update người nhận
@@ -92,10 +97,14 @@ const chatSlice = createSlice({
         state.rooms.push(action.payload);
       }
     },
+
+    setActiveChat(state, action: PayloadAction<{ id: string; type: "people" | "room" }>) {
+      state.activeChat = action.payload;
+    },
   },
 });
 
-export const { addMessage, setUsers, setMessages, addUser, addRoom } =
+export const { addMessage, setUsers, setMessages, addUser, addRoom, setActiveChat } =
   chatSlice.actions;
 
 export default chatSlice.reducer;

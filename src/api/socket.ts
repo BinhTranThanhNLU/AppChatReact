@@ -41,7 +41,7 @@ export const connectSocket = (onOpen?: () => void) => {
     const res = JSON.parse(e.data);
     // 1. LOGIN OK hoặc RE_LOGIN OK
     if ((res.event === "LOGIN" || res.event === "RE_LOGIN") && res.status === "success") {
-        // ✅ FIX:  Lấy username từ state Redux (đã lưu trước đó)
+        //FIX:  Lấy username từ state Redux (đã lưu trước đó)
         let username = store.getState().auth.user;
         
         // Nếu không có trong Redux, thử lấy từ localStorage (trường hợp RE_LOGIN)
@@ -52,18 +52,18 @@ export const connectSocket = (onOpen?: () => void) => {
                     const parsed = JSON.parse(storedAuth);
                     username = parsed. user;
                 } catch (error) {
-                    console.error("❌ Lỗi parse auth từ localStorage", error);
+                    console.error("Lỗi parse auth từ localStorage", error);
                 }
             }
         }
 
-        // ✅ Kiểm tra username
+        //Kiểm tra username
         if (! username) {
-            console.error("❌ Không tìm thấy username để lưu RE_LOGIN_CODE");
+            console.error("Không tìm thấy username để lưu RE_LOGIN_CODE");
             return;
         }
 
-        console.log("✅ LOGIN/RE_LOGIN thành công cho user:", username);
+        console.log("LOGIN/RE_LOGIN thành công cho user:", username);
 
         // Dispatch loginSuccess với reLoginCode mới
         store.dispatch(
@@ -80,7 +80,7 @@ export const connectSocket = (onOpen?: () => void) => {
         );
 
         // Lấy danh sách user
-        console.log("📡 Requesting GET_USER_LIST.. .");
+        console.log("Requesting GET_USER_LIST.. .");
         sendSocket({ action: "onchat", data: { event: "GET_USER_LIST" } });
         return;
     }
@@ -198,13 +198,13 @@ export const connectSocket = (onOpen?: () => void) => {
 
     // 10. CHECK_USER_EXIST (Kết quả tìm kiếm user)
     if (res.event === "CHECK_USER_EXIST") {
-      console.log("🔍 CHECK_USER_EXIST Response:", res);
+      console.log("CHECK_USER_EXIST Response:", res);
 
       if (res.status === "success" && res.data?.status === true) {
         const userName = pendingUserSearch;
 
         if (!userName || typeof userName !== "string") {
-          console.error("❌ User name không hợp lệ:", userName);
+          console.error("User name không hợp lệ:", userName);
           return;
         }
 
@@ -216,11 +216,11 @@ export const connectSocket = (onOpen?: () => void) => {
         if (!exists) {
           store.dispatch(addUser(userFound));
           console.log(
-            "✅ Đã thêm user tìm thấy vào danh sách:",
+            "Đã thêm user tìm thấy vào danh sách:",
             userFound.name
           );
         } else {
-          console.log("ℹ️ User đã có trong danh sách:", userFound.name);
+          console.log("User đã có trong danh sách:", userFound.name);
         }
 
         pendingUserSearch = null;
@@ -233,7 +233,7 @@ export const connectSocket = (onOpen?: () => void) => {
 
     // AUTH ERROR
     if (res.event === "AUTH" && res.status === "error") {
-      console.warn("⚠️ AUTH ERROR:", res.mes);
+      console.warn("AUTH ERROR:", res.mes);
 
       // toast.warning("Người dùng chưa online");
       return;
@@ -245,9 +245,9 @@ export const connectSocket = (onOpen?: () => void) => {
     console.warn("WebSocket disconnected");
     socket = null;
 
-    // ✅ FIX: Auto reconnect sau 3 giây
+    // FIX: Auto reconnect sau 3 giây
     reconnectTimeout = setTimeout(() => {
-      console.log("🔄 Attempting to reconnect...");
+      console.log("Attempting to reconnect...");
       const storedAuth = localStorage.getItem("auth");
       if (storedAuth) {
         connectSocket();

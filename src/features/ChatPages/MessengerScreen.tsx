@@ -6,7 +6,7 @@ import Messenger from "./components/Messenger";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../stores/Store";
 import { connectSocket, sendSocket } from "../../api/socket";
-import { setMessages } from "../chat/ChatSlice";
+import { setMessages, setActiveChat } from "../chat/ChatSlice";
 import { loginSuccess } from "../chat/AuthSlice";
 
 const MessengerScreen: React.FC = () => {
@@ -69,7 +69,7 @@ const MessengerScreen: React.FC = () => {
 
         // Connect socket và gửi RE_LOGIN
         connectSocket(() => {
-          console.log("✅ Socket Connected -> Sending RE_LOGIN...");
+          console.log("Socket Connected -> Sending RE_LOGIN...");
           sendSocket({
             action: "onchat",
             data: {
@@ -92,6 +92,7 @@ const MessengerScreen: React.FC = () => {
     setActiveUserId(id);
     setSelectedType(type);
 
+    dispatch(setActiveChat({ id, type }));
     dispatch(setMessages([]));
 
     if (type === "room") {
