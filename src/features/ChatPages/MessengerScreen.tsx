@@ -53,7 +53,6 @@ const MessengerScreen: React.FC = () => {
       )}&background=random`,
       type: "room" as const,
     }));
-
     return [...roomChats, ...peopleChats];
   }, [users, rooms, activeUserId]);
 
@@ -63,6 +62,8 @@ const MessengerScreen: React.FC = () => {
     if (storedAuth) {
       try {
         const { user, code } = JSON.parse(storedAuth);
+
+
 
         // Dispatch vào Redux để restore state
         dispatch(loginSuccess({ user, reLoginCode: code }));
