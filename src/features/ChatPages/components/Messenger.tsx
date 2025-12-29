@@ -31,6 +31,7 @@ const Messenger: React.FC<MessengerProps> = ({
 }) => {
   const [inputMsg, setInputMsg] = useState("");
   const endRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const dispatch = useDispatch();
 
   // 1. SẮP XẾP TIN NHẮN (Cũ trên - Mới dưới)
@@ -72,6 +73,41 @@ const Messenger: React.FC<MessengerProps> = ({
       }
     }
   }, [currentUser, dispatch]);
+  const handleSelectImage = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+  if (!file || !currentChatUser) return;
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    const base64 = reader.result as string;
+
+    sendSocket({
+      action: "onchat",
+      data: {
+        event: "SEND_CHAT",
+        data: {
+          type: chatType,
+          to: currentChatUser,
+          mes: base64,
+        },
+      },
+    });
+
+    dispatch(
+      addMessage({
+        userId: currentUser,
+        content: base64,
+        msgType: "image",
+        time: new Date().toISOString(),
+      })
+    );
+  };
+
+  reader.readAsDataURL(file);
+
+  // reset input để chọn lại cùng ảnh vẫn trigger
+  e.target.value = "";
+};
 
   // 2. TỰ ĐỘNG CUỘN XUỐNG DƯỚI
   useEffect(() => {
@@ -172,7 +208,22 @@ const Messenger: React.FC<MessengerProps> = ({
               )}
               <div className="message-content">
                 <div className="bubble-container">
-                  <div className="message-bubble">{msg.content}</div>
+                  <div className="message-bubble">
+                    {msg.msgType === "image" ? (
+                      <img
+                        src={msg.content}
+                        alt="chat-img"
+                        style={{
+                          maxWidth: "220px",
+                          borderRadius: "12px",
+                          cursor: "pointer",
+                        }}
+                      />
+                    ) : (
+                      msg.content
+                    )}
+                  </div>
+
                 </div>
                 {/* Hiển thị thời gian nhỏ bên dưới nếu muốn */}
                 <div
@@ -195,9 +246,24 @@ const Messenger: React.FC<MessengerProps> = ({
       <div className="chat-footer">
         <div className="footer-actions">
           <MoreHorizontal size={20} />
-          <ImageIcon size={20} />
+
+          <ImageIcon
+            size={20}
+            style={{ cursor: "pointer" }}
+            onClick={() => fileInputRef.current?.click()}
+          />
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            hidden
+            onChange={handleSelectImage}
+          />
+
           <Mic size={20} />
         </div>
+
         <div className="input-wrapper">
           <input
             className="chat-input"

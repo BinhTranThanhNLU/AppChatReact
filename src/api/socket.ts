@@ -41,62 +41,62 @@ export const connectSocket = (onOpen?: () => void) => {
     const res = JSON.parse(e.data);
     // 1. LOGIN OK hoặc RE_LOGIN OK
     if ((res.event === "LOGIN" || res.event === "RE_LOGIN") && res.status === "success") {
-        //FIX:  Lấy username từ state Redux (đã lưu trước đó)
-        let username = store.getState().auth.user;
-        
-        // Nếu không có trong Redux, thử lấy từ localStorage (trường hợp RE_LOGIN)
-        if (!username) {
-            const storedAuth = localStorage.getItem("auth");
-            if (storedAuth) {
-                try {
-                    const parsed = JSON.parse(storedAuth);
-                    username = parsed. user;
-                } catch (error) {
-                    console.error("Lỗi parse auth từ localStorage", error);
-                }
-            }
+      //FIX:  Lấy username từ state Redux (đã lưu trước đó)
+      let username = store.getState().auth.user;
+
+      // Nếu không có trong Redux, thử lấy từ localStorage (trường hợp RE_LOGIN)
+      if (!username) {
+        const storedAuth = localStorage.getItem("auth");
+        if (storedAuth) {
+          try {
+            const parsed = JSON.parse(storedAuth);
+            username = parsed.user;
+          } catch (error) {
+            console.error("Lỗi parse auth từ localStorage", error);
+          }
         }
+      }
 
-        //Kiểm tra username
-        if (! username) {
-            console.error("Không tìm thấy username để lưu RE_LOGIN_CODE");
-            return;
-        }
-
-        console.log("LOGIN/RE_LOGIN thành công cho user:", username);
-
-        // Dispatch loginSuccess với reLoginCode mới
-        store.dispatch(
-            loginSuccess({ 
-                user: username, 
-                reLoginCode: res.data.RE_LOGIN_CODE 
-            })
-        );
-
-        // Lưu vào localStorage
-        localStorage.setItem(
-            "auth",
-            JSON.stringify({ user: username, code: res.data.RE_LOGIN_CODE })
-        );
-
-        // Lấy danh sách user
-        console.log("Requesting GET_USER_LIST.. .");
-        sendSocket({ action: "onchat", data: { event: "GET_USER_LIST" } });
+      //Kiểm tra username
+      if (!username) {
+        console.error("Không tìm thấy username để lưu RE_LOGIN_CODE");
         return;
+      }
+
+      console.log("LOGIN/RE_LOGIN thành công cho user:", username);
+
+      // Dispatch loginSuccess với reLoginCode mới
+      store.dispatch(
+        loginSuccess({
+          user: username,
+          reLoginCode: res.data.RE_LOGIN_CODE
+        })
+      );
+
+      // Lưu vào localStorage
+      localStorage.setItem(
+        "auth",
+        JSON.stringify({ user: username, code: res.data.RE_LOGIN_CODE })
+      );
+
+      // Lấy danh sách user
+      console.log("Requesting GET_USER_LIST.. .");
+      sendSocket({ action: "onchat", data: { event: "GET_USER_LIST" } });
+      return;
     }
 
     // 2. GET USER LIST
     if (res.event === "GET_USER_LIST") {
-        console.log("Dữ liệu User List từ Server:", res.data);
-        
-        if (!res.data || !Array.isArray(res.data)) {
-            console.error("GET_USER_LIST trả về data không hợp lệ:", res.data);
-            return;
-        }
-        
-        store.dispatch(setUsers(res.data));
-        console.log("Đã cập nhật user list vào Redux, total:", res.data.length);
+      console.log("Dữ liệu User List từ Server:", res.data);
+
+      if (!res.data || !Array.isArray(res.data)) {
+        console.error("GET_USER_LIST trả về data không hợp lệ:", res.data);
         return;
+      }
+
+      store.dispatch(setUsers(res.data));
+      console.log("Đã cập nhật user list vào Redux, total:", res.data.length);
+      return;
     }
 
     // 3. GET_PEOPLE_CHAT_MES (Lịch sử tin nhắn)
@@ -104,13 +104,19 @@ export const connectSocket = (onOpen?: () => void) => {
       console.log("Dữ liệu GET_PEOPLE_CHAT_MES từ Server:", res.data);
       const rawMessages = Array.isArray(res.data) ? res.data : [];
 
-      const mappedMessages = rawMessages.map((msg: any) => ({
-        // Ưu tiên lấy 'name', nếu không có thì fallback cẩn thận
-        userId: msg.name,
-        to: msg.to,
-        content: msg.mes,
-        time: msg.createAt || new Date().toISOString(),
-      }));
+      const mappedMessages = rawMessages.map((msg: any) => {
+        const isImage =
+          typeof msg.mes === "string" &&
+          msg.mes.startsWith("data:image");
+
+        return {
+          userId: msg.name,
+          content: msg.mes,
+          msgType: isImage ? "image" : "text",
+          time: msg.createAt || new Date().toISOString(),
+        };
+      });
+
 
       store.dispatch(setMessages(mappedMessages));
       return;
@@ -126,12 +132,15 @@ export const connectSocket = (onOpen?: () => void) => {
       if (currentUser && res.data.name === currentUser) {
         return;
       }
+      const isImage =
+        typeof res.data.mes === "string" &&
+        res.data.mes.startsWith("data:image");
 
       const newMessage = {
-        userId: res.data.name, // Đây là người gửi tin nhắn này
+        userId: res.data.name,
         content: res.data.mes,
+        msgType: isImage ? ("image" as const) : ("text" as const),
         time: new Date().toISOString(),
-        to: store.getState().auth.user || undefined, // <--- THÊM DÒNG NÀY: Xác định tin này gửi cho mình
       };
 
       store.dispatch(addMessage(newMessage));
