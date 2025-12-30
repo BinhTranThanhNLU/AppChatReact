@@ -10,8 +10,8 @@ export interface Message {
 
 export interface User {
   name: string;
-  mes?: string; // Thêm dòng này: chứa nội dung tin nhắn cuối
-  createAt?: string; // Thêm dòng này: chứa thời gian
+  mes?: string; 
+  createAt?: string; 
 }
 
 export interface Room {
@@ -50,7 +50,7 @@ const chatSlice = createSlice({
       const currentUser = userId; // Người gửi
       const targetUser = to; // Người nhận
 
-      // FIX:  Xác định user nào cần update trong sidebar
+      // Xác định user nào cần update trong sidebar
       let userToUpdate: string | undefined;
 
       // Nếu mình gửi (userId === current logged user), update người nhận
@@ -100,6 +100,7 @@ const chatSlice = createSlice({
     },
 
     setActiveChat(state, action: PayloadAction<{ id: string; type: "people" | "room" }>) {
+      console.log(`setActiveChat reducer received:`, action.payload);
       state.activeChat = action.payload;
     },
   },

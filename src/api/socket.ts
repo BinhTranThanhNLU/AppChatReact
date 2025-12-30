@@ -6,6 +6,7 @@ import {
   setMessages,
   addUser,
   addRoom,
+  setActiveChat,
 } from "../features/chat/ChatSlice";
 
 let socket: WebSocket | null = null;
@@ -40,7 +41,10 @@ export const connectSocket = (onOpen?: () => void) => {
   socket.onmessage = (e) => {
     const res = JSON.parse(e.data);
     // 1. LOGIN OK hoặc RE_LOGIN OK
-    if ((res.event === "LOGIN" || res.event === "RE_LOGIN") && res.status === "success") {
+    if (
+      (res.event === "LOGIN" || res.event === "RE_LOGIN") &&
+      res.status === "success"
+    ) {
       //FIX:  Lấy username từ state Redux (đã lưu trước đó)
       let username = store.getState().auth.user;
 
@@ -69,7 +73,7 @@ export const connectSocket = (onOpen?: () => void) => {
       store.dispatch(
         loginSuccess({
           user: username,
-          reLoginCode: res.data.RE_LOGIN_CODE
+          reLoginCode: res.data.RE_LOGIN_CODE,
         })
       );
 
@@ -106,8 +110,7 @@ export const connectSocket = (onOpen?: () => void) => {
 
       const mappedMessages = rawMessages.map((msg: any) => {
         const isImage =
-          typeof msg.mes === "string" &&
-          msg.mes.startsWith("data:image");
+          typeof msg.mes === "string" && msg.mes.startsWith("data:image");
 
         return {
           userId: msg.name,
@@ -116,7 +119,6 @@ export const connectSocket = (onOpen?: () => void) => {
           time: msg.createAt || new Date().toISOString(),
         };
       });
-
 
       store.dispatch(setMessages(mappedMessages));
       return;
@@ -129,6 +131,43 @@ export const connectSocket = (onOpen?: () => void) => {
       const state = store.getState();
       const currentUser = state.auth.user;
 
+      //KIỂM TRA LỜI MỜI VÀO ROOM
+      if (res.data.mes && typeof res.data.mes === "string") {
+        const message = res.data.mes;
+
+        // Kiểm tra nếu là tin nhắn mời vào room
+        if (
+          message.includes("🔔") &&
+          message.includes("đã được mời vào nhóm")
+        ) {
+          // Lấy tên user được tag
+          const tagMatch = message.match(/@(\w+)/);
+          if (tagMatch && tagMatch[1] === currentUser) {
+            const roomName = res.data.to; // Tên room
+
+            // Hiện popup xác nhận
+            const confirmJoin = window.confirm(
+              `Bạn được mời vào nhóm "${roomName}". Bạn có muốn tham gia không?`
+            );
+
+            if (confirmJoin) {
+              // Gọi JOIN_ROOM
+              sendSocket({
+                action: "onchat",
+                data: {
+                  event: "JOIN_ROOM",
+                  data: { name: roomName },
+                },
+              });
+
+              alert(`Đã tham gia nhóm "${roomName}"!`);
+            }
+            return; // Không thêm tin nhắn này vào chat
+          }
+        }
+      }
+
+      // Bỏ qua tin nhắn của chính mình
       if (currentUser && res.data.name === currentUser) {
         return;
       }
@@ -169,6 +208,14 @@ export const connectSocket = (onOpen?: () => void) => {
       const roomName = res.data.name;
 
       store.dispatch(addRoom({ roomName }));
+
+      console.log(`Dispatching setActiveChat from JOIN_ROOM:`, {
+        id: roomName,
+        type: "room",
+      });
+
+      store.dispatch(setActiveChat({ id: roomName, type: "room" }));
+
       return;
     }
 
@@ -224,10 +271,7 @@ export const connectSocket = (onOpen?: () => void) => {
 
         if (!exists) {
           store.dispatch(addUser(userFound));
-          console.log(
-            "Đã thêm user tìm thấy vào danh sách:",
-            userFound.name
-          );
+          console.log("Đã thêm user tìm thấy vào danh sách:", userFound.name);
         } else {
           console.log("User đã có trong danh sách:", userFound.name);
         }

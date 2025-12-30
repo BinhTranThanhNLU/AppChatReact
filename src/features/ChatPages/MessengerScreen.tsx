@@ -35,7 +35,7 @@ const MessengerScreen: React.FC = () => {
             minute: "2-digit",
           })
         : "",
-      active: activeUserId === user.name,
+      active: activeUserId === user.name && selectedType === "people",
       avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(
         user.name
       )}&background=random`,
@@ -47,14 +47,14 @@ const MessengerScreen: React.FC = () => {
       name: room.roomName,
       msg: "",
       time: "",
-      active: activeUserId === room.roomName,
+      active: activeUserId === room.roomName && selectedType === "room",
       avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(
         room.roomName
       )}&background=random`,
       type: "room" as const,
     }));
     return [...roomChats, ...peopleChats];
-  }, [users, rooms, activeUserId]);
+  }, [users, rooms, activeUserId, selectedType]);
 
   useEffect(() => {
     const storedAuth = localStorage.getItem("auth");
@@ -62,8 +62,6 @@ const MessengerScreen: React.FC = () => {
     if (storedAuth) {
       try {
         const { user, code } = JSON.parse(storedAuth);
-
-
 
         // Dispatch vào Redux để restore state
         dispatch(loginSuccess({ user, reLoginCode: code }));
@@ -90,8 +88,12 @@ const MessengerScreen: React.FC = () => {
 
   // Xử lý khi bấm vào user va room
   const handleSelectChat = (id: string, type: "people" | "room") => {
+    console.log(`Selected:  ${id}, type: ${type}`); // DEBUG
+
     setActiveUserId(id);
     setSelectedType(type);
+
+    console.log(`Dispatching setActiveChat: `, { id, type });
 
     dispatch(setActiveChat({ id, type }));
     dispatch(setMessages([]));

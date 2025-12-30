@@ -1,94 +1,69 @@
-// addMessage(state, action: PayloadAction<Message>) {
-    //   const { userId, content, time, to } = action.payload;
-    //
-    //   // 1. Thêm vào danh sách tin nhắn chi tiết (như cũ)
-    //   state.messages.push(action.payload);
-    //
-    //   // 2. CẬP NHẬT "PREVIEW" Ở SIDEBAR (Logic mới thêm)
-    //   // Tìm user trong danh sách users để cập nhật tin nhắn cuối cùng
-    //   const targetUserName = userId === "me" ? to : userId; // Logic xác định user cần update
-    //
-    //   const userIndex = state.users.findIndex(u => u.name === targetUserName || u.name === userId || u.name === to);
-    //
-    //   if (userIndex !== -1) {
-    //     // Cập nhật nội dung và thời gian cho user đó trong sidebar
-    //     state.users[userIndex].mes = content;
-    //     state.users[userIndex].createAt = time;
-    //
-    //     // (Tùy chọn) Đưa user này lên đầu danh sách
-    //     const user = state.users.splice(userIndex, 1)[0];
-    //     state.users.unshift(user);
-    //   }
-    // },
-      addMessage(state, action: PayloadAction<Message>) {
-          const { userId, content, time, to } = action.payload;
 
-          // 1. Thêm vào danh sách tin nhắn chi tiết (như cũ)
-          state.messages.push(action.payload);
 
-          // 2. CẬP NHẬT "PREVIEW" Ở SIDEBAR
-          // Logic sửa: Nếu userId là người gửi tin đến (khác mình), update người đó.
-          // Nếu mình là người gửi (userId == to?), logic cần check kỹ hơn.
-          // Cách đơn giản nhất: Tìm user có tên trùng với userId (người gửi) HOẶC to (người nhận)
 
-          // Tìm index của người cần update trong danh sách users
-          const userIndex = state.users.findIndex(u => u.name === userId || u.name === to);
 
-          if (userIndex !== -1) {
-              // Cập nhật nội dung và thời gian
-              state.users[userIndex].mes = content;
-              state.users[userIndex].createAt = time;
 
-              // Đưa user này lên đầu danh sách
-              const user = state.users.splice(userIndex, 1)[0];
-              state.users.unshift(user);
+        // 10. CHECK_USER_EXIST (Kết quả tìm kiếm user) + invvite user vào room
+    if (res.event === "CHECK_USER_EXIST") {
+      console.log("CHECK_USER_EXIST Response:", res);
+
+      if (res.status === "success" && res.data?.status === true) {
+        // KIỂM TRA XEM CÓ ĐANG MỜI VÀO ROOM KHÔNG
+        const pendingInviteStr = sessionStorage.getItem("pendingInvite");
+
+        if (pendingInviteStr) {
+          try {
+            const pendingInvite = JSON.parse(pendingInviteStr);
+            const { username, roomName } = pendingInvite;
+
+            console.log(`Đang gửi lời mời ${username} vào room ${roomName}`);
+
+            // Gửi tin nhắn mời vào room
+            sendSocket({
+              action: "onchat",
+              data: {
+                event: "SEND_CHAT",
+                data: {
+                  type: "room",
+                  to: roomName,
+                  mes: `🔔 @${username} đã được mời vào nhóm! `,
+                },
+              },
+            });
+
+            alert(`Đã gửi lời mời đến ${username}!`);
+            sessionStorage.removeItem("pendingInvite");
+            return; //QUAN TRỌNG: Dừng tại đây, không chạy logic tìm user bên dưới
+          } catch (error) {
+            console.error("Lỗi parse pendingInvite:", error);
           }
-      },
+        }
 
-if (
-      (res.event === "LOGIN" || res.event === "RE_LOGIN") &&
-      res.status === "success"
-    ) {
-      const user = store.getState().auth.user!;
-      store.dispatch(
-        loginSuccess({ user, reLoginCode: res.data.RE_LOGIN_CODE })
-      );
-      localStorage.setItem(
-        "auth",
-        JSON.stringify({ user, code: res.data.RE_LOGIN_CODE })
-      );
+        //TRƯỜNG HỢP TÌM USER ĐỂ CHAT (không phải mời vào room)
+        const userName = pendingUserSearch;
 
-      // Lấy danh sách user ngay khi login xong
-      sendSocket({ action: "onchat", data: { event: "GET_USER_LIST" } });
+        if (!userName || typeof userName !== "string") {
+          console.error("User name không hợp lệ:", userName);
+          return;
+        }
+
+        const userFound = { name: userName };
+
+        const users = store.getState().chat.users;
+        const exists = users.find((u) => u.name === userFound.name);
+
+        if (!exists) {
+          store.dispatch(addUser(userFound));
+          console.log("Đã thêm user tìm thấy vào danh sách:", userFound.name);
+        } else {
+          console.log("User đã có trong danh sách:", userFound.name);
+        }
+
+        pendingUserSearch = null;
+      } else {
+        alert("Người dùng không tồn tại!");
+        pendingUserSearch = null;
+        sessionStorage.removeItem("pendingInvite"); //XÓA PENDING INVITE NẾU USER KHÔNG TỒN TẠI
+      }
       return;
     }
-
-if (res.event === "GET_USER_LIST") {
-      console.log("🔥 Dữ liệu User List từ Server:", res.data);
-      store.dispatch(setUsers(res.data));
-      return;
-    }
-
-
-
-    useEffect(() => {
-        // Truyền callback vào connectSocket
-        connectSocket(() => {
-            console.log("Socket Connected -> Sending RE_LOGIN...");
-            const str = localStorage.getItem("auth");
-            if (str) {
-                const auth = JSON.parse(str);
-                // Gửi thông tin đăng nhập lại để Server biết socket này của ai
-                sendSocket({
-                    action: "onchat",
-                    data: {
-                        event: "RE_LOGIN",
-                        data: {
-                            user: auth.user,
-                            code: auth.code, // Đảm bảo server cần code này để xác thực
-                        },
-                    },
-                });
-            }
-        });
-    }, []);
