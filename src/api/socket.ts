@@ -203,7 +203,7 @@ export const connectSocket = (onOpen?: () => void) => {
             return;
         }
 
-        //6. JOIN ROOM
+        //6. JOIN ROOM Mới 
         if (res.event === "JOIN_ROOM" && res.status === "success") {
             const roomName = res.data.name;
 
@@ -231,7 +231,7 @@ export const connectSocket = (onOpen?: () => void) => {
             return;
         }
 
-        //8. LOGOUT
+        //8. LOGOUT 
         if (res.event === "LOGOUT" && res.status === "success") {
             store.dispatch(logout());
             localStorage.removeItem("auth");
@@ -284,7 +284,7 @@ export const connectSocket = (onOpen?: () => void) => {
             return;
         }
 
-        // AUTH ERROR
+        // AUTH ERRORR
         if (res.event === "AUTH" && res.status === "error") {
             console.warn("AUTH ERROR:", res.mes);
 
