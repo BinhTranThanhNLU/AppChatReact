@@ -306,6 +306,15 @@ export const connectSocket = (onOpen?: () => void) => {
             }
             return;
         }
+        // 12. Xử lý Video Call Signaling
+        if (res.event === "VIDEO_CALL_SIGNAL") {
+            const { from, signalData } = res.data;
+            // Dispatch một custom event để component Messenger có thể lắng nghe
+            window.dispatchEvent(new CustomEvent('webrtc-signal', {
+                detail: { from, signalData }
+            }));
+            return;
+        }
     };
 
 
@@ -352,5 +361,14 @@ export const searchUser = (username: string) => {
                 user: username,
             },
         },
+    });
+};
+export const sendVideoSignal = (to: string, signalData: any) => {
+    sendSocket({
+        action: "onchat",
+        data: {
+            event: "VIDEO_CALL_SIGNAL",
+            data: { to, signalData }
+        }
     });
 };

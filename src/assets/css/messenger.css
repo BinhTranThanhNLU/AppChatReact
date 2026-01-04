@@ -496,67 +496,123 @@ body {
 .submenu-item:hover {
     background-color: #f0f2f5;
 }
+
 /* code moi css của tạo phòng và vào phòng */
 .options-menu {
-  position: absolute;
-  top: 44px;
-  right: 0;
-  width: 260px;
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-  padding: 6px 0;
-  z-index: 1000;
+    position: absolute;
+    top: 44px;
+    right: 0;
+    width: 260px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    padding: 6px 0;
+    z-index: 1000;
 }
 
 .menu-item {
-  display: flex;
-  align-items: center;
-  padding: 10px 16px;
-  font-size: 14px;
-  color: #050505;
-  cursor: pointer;
-}
-.menu-item svg {
-  width: 20px;
-  min-width: 20px;
-  margin-right: 12px;
-}
-.menu-item span {
-  flex: 1;
-  text-align: left;
+    display: flex;
+    align-items: center;
+    padding: 10px 16px;
+    font-size: 14px;
+    color: #050505;
+    cursor: pointer;
 }
 
+.menu-item svg {
+    width: 20px;
+    min-width: 20px;
+    margin-right: 12px;
+}
+
+.menu-item span {
+    flex: 1;
+    text-align: left;
+}
 
 
 .menu-item:hover {
-  background-color: #f2f2f2;
+    background-color: #f2f2f2;
 }
 
 .menu-divider {
-  height: 1px;
-  background: #e4e6eb;
-  margin: 6px 0;
+    height: 1px;
+    background: #e4e6eb;
+    margin: 6px 0;
 }
+
 .header-actions {
-  position: relative;
+    position: relative;
 }
 
 .menu-input-row {
-  padding: 10px 16px;
+    padding: 10px 16px;
 }
 
 .menu-input {
-  width: 100%;
-  border: none;
-  outline: none;
-  font-size: 14px;
-  padding: 6px 0;
-  border-bottom: 2px solid #1877f2;
+    width: 100%;
+    border: none;
+    outline: none;
+    font-size: 14px;
+    padding: 6px 0;
+    border-bottom: 2px solid #1877f2;
 }
+
 .chat-list {
-  overflow-y: auto;
-  flex: 1;
+    overflow-y: auto;
+    flex: 1;
 }
 
 
+.video-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.video-container {
+    position: relative;
+    width: 80%;
+    max-width: 800px;
+    height: 600px;
+}
+
+.remote-video {
+    width: 100%;
+    height: 100%;
+    border-radius: 8px;
+    background: #222;
+    object-fit: cover;
+}
+
+.local-video {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 200px;
+    height: 150px;
+    border: 2px solid white;
+    border-radius: 8px;
+    z-index: 10;
+    background: #000;
+}
+
+.end-call-btn {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #ff4d4d;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+}
