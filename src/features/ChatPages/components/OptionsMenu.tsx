@@ -16,6 +16,8 @@ const OptionsMenu: React.FC<OptionsMenuProps> = ({ onClose }) => {
   const [mode, setMode] = useState<"default" | "create-group" | "join-group">(
     "default"
   );
+
+  
   return (
     <div className="options-menu">
       {mode === "default" && (
