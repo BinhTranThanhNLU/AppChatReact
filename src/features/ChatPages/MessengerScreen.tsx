@@ -144,6 +144,8 @@ const MessengerScreen: React.FC = () => {
             <InforMessenger/>
         </div>
     );
+    
 };
+
 
 export default MessengerScreen;
