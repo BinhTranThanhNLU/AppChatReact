@@ -28,9 +28,6 @@ const InforMessenger = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  //DEBUG: Log ra để kiểm tra
-  console.log("activeChat:", activeChat);
-
   let displayName = "Chưa chọn đoạn chat";
   let avatarUrl = "https://ui-avatars.com/api/?name=Chat";
 

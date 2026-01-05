@@ -56,7 +56,15 @@ const MessengerScreen: React.FC = () => {
       )}&background=random`,
       type: "room" as const,
     }));
-    return [...roomChats, ...peopleChats];
+    
+    const allChats = [...roomChats, ...peopleChats];
+
+    const uniqueChats = Array.from(
+      new Map(allChats.map((item) => [item.id + item.type, item])).values()
+    );
+
+    return uniqueChats;
+
   }, [users, rooms, activeUserId, selectedType]);
 
   useEffect(() => {
