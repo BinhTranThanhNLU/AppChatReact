@@ -93,11 +93,14 @@ const chatSlice = createSlice({
         },
 
         addRoom(state, action: PayloadAction<Room>) {
+            
+            const newRoomName = action.payload.roomName.trim();
+
             const exitst = state.rooms.find(
-                (room) => room.roomName === action.payload.roomName
+                (room) => room.roomName.trim() === newRoomName
             );
             if (!exitst) {
-                state.rooms.push(action.payload);
+                state.rooms.push({ ...action.payload, roomName: newRoomName });
             }
         },
 

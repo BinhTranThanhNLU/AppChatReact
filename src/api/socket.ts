@@ -191,7 +191,7 @@ export const connectSocket = (onOpen?: () => void) => {
     if (res.event === "CREATE_ROOM" && res.status === "success") {
       const roomName = res.data.name;
 
-      store.dispatch(addRoom({ roomName }));
+      //store.dispatch(addRoom({ roomName }));
 
       //JOIN ROOM, auto join luôn
       sendSocket({
