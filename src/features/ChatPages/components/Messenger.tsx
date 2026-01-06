@@ -11,11 +11,12 @@ import {
   Mic,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
-import { addMessage, Message } from "../../../features/chat/ChatSlice";
+import { addMessage, Message, toggleReaction } from "../../../features/chat/ChatSlice";
 import { sendSocket } from "../../../api/socket";
 import { loginSuccess } from "../../chat/AuthSlice";
 import { RootState } from "../../../stores/Store";
 import { VideoCallModal } from "../../../features/ChatPages/components/VideoCallModal";
+import MessageItem from "./MessageItem";
 
 interface MessengerProps {
   messages: Message[];
@@ -247,6 +248,16 @@ const Messenger: React.FC<MessengerProps> = ({
     return user?.isOnline === true;
   }, [users, currentChatUser, chatType]);
 
+  const handleLocalReaction = (targetMsg: Message, icon: string) => {
+    dispatch(
+      toggleReaction({
+        msgTime: targetMsg.time,
+        msgUser: targetMsg.userId,
+        icon: icon,
+      })
+    );
+  };
+
   return (
     <div className="main-chat">
       {isCalling && (
@@ -289,44 +300,12 @@ const Messenger: React.FC<MessengerProps> = ({
 
       <div className="messages-area">
         {sortedMessages.map((msg, index) => (
-          <div
-            key={index}
-            className={`message-row ${
-              msg.userId === currentUser ? "me" : "other"
-            }`}
-          >
-            {msg.userId !== currentUser && (
-              <img
-                src={`https://ui-avatars.com/api/?name=${encodeURIComponent(
-                  msg.userId
-                )}&background=random`}
-                className="message-avatar"
-                alt="sender"
-              />
-            )}
-            <div className="message-content">
-              <div className="message-bubble">
-                {msg.msgType === "image" ? (
-                  <img
-                    src={msg.content}
-                    alt="chat-img"
-                    style={{ maxWidth: "220px", borderRadius: "12px" }}
-                  />
-                ) : (
-                  msg.content
-                )}
-              </div>
-              <div
-                style={{
-                  fontSize: "10px",
-                  color: "#aaa",
-                  textAlign: msg.userId === currentUser ? "right" : "left",
-                }}
-              >
-                {new Date(msg.time).toLocaleTimeString()}
-              </div>
-            </div>
-          </div>
+          <MessageItem 
+                key={index} 
+                msg={msg} 
+                currentUser={currentUser} 
+                onReact={handleLocalReaction} 
+            />
         ))}
         <div ref={endRef} />
       </div>

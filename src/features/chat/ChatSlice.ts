@@ -1,125 +1,166 @@
-import {createSlice, PayloadAction} from "@reduxjs/toolkit";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+
+export interface Reaction {
+  icon: string;
+}
 
 export interface Message {
-    userId: string; // Người gửi
-    to?: string; // Người nhận
-    content: string;
-    time: string;
-    msgType?: "text" | "image";
+  userId: string; // Người gửi
+  to?: string; // Người nhận
+  content: string;
+  time: string;
+  msgType?: "text" | "image";
+  myReaction?: string;
 }
 
 export interface User {
-    name: string;
-    mes?: string;
-    createAt?: string;
-    // kiểm tra xem có đang onl không
-    isOnline?: boolean;
+  name: string;
+  mes?: string;
+  createAt?: string;
+  // kiểm tra xem có đang onl không
+  isOnline?: boolean;
 }
 
 export interface Room {
-    roomName: string;
+  roomName: string;
 }
 
 interface ChatState {
-    messages: Message[];
-    users: User[];
-    rooms: Room[];
-    currentChatType?: "people" | "room";
-    activeChat?: {
-        id: string;
-        type: "people" | "room";
-    };
+  messages: Message[];
+  users: User[];
+  rooms: Room[];
+  currentChatType?: "people" | "room";
+  activeChat?: {
+    id: string;
+    type: "people" | "room";
+  };
 }
 
 const initialState: ChatState = {
-    messages: [],
-    users: [],
-    rooms: [],
-    activeChat: undefined,
+  messages: [],
+  users: [],
+  rooms: [],
+  activeChat: undefined,
 };
 
 const chatSlice = createSlice({
-    name: "chat",
-    initialState,
-    reducers: {
-        addMessage(state, action: PayloadAction<Message>) {
-            const {userId, content, time, to} = action.payload;
+  name: "chat",
+  initialState,
+  reducers: {
+    addMessage(state, action: PayloadAction<Message>) {
+      const { userId, content, time, to } = action.payload;
 
-            // 1. Thêm vào danh sách tin nhắn chi tiết
-            state.messages.push(action.payload);
+      // 1. Thêm vào danh sách tin nhắn chi tiết
+      state.messages.push(action.payload);
 
-            // 2. CẬP NHẬT "PREVIEW" Ở SIDEBAR
-            const currentUser = userId; // Người gửi
-            const targetUser = to; // Người nhận
+      // 2. CẬP NHẬT "PREVIEW" Ở SIDEBAR
+      const currentUser = userId; // Người gửi
+      const targetUser = to; // Người nhận
 
-            // Xác định user nào cần update trong sidebar
-            let userToUpdate: string | undefined;
+      // Xác định user nào cần update trong sidebar
+      let userToUpdate: string | undefined;
 
-            // Nếu mình gửi (userId === current logged user), update người nhận
-            // Nếu người khác gửi cho mình, update người gửi
-            const myUsername = state.users[0]?.name; // Hoặc lấy từ auth state
+      // Nếu mình gửi (userId === current logged user), update người nhận
+      // Nếu người khác gửi cho mình, update người gửi
+      const myUsername = state.users[0]?.name; // Hoặc lấy từ auth state
 
-            if (currentUser === myUsername) {
-                userToUpdate = targetUser; // Mình gửi -> update người nhận
-            } else {
-                userToUpdate = currentUser; // Người khác gửi -> update người gửi
-            }
+      if (currentUser === myUsername) {
+        userToUpdate = targetUser; // Mình gửi -> update người nhận
+      } else {
+        userToUpdate = currentUser; // Người khác gửi -> update người gửi
+      }
 
-            if (!userToUpdate) return;
+      if (!userToUpdate) return;
 
-            const userIndex = state.users.findIndex((u) => u.name === userToUpdate);
+      const userIndex = state.users.findIndex((u) => u.name === userToUpdate);
 
-            if (userIndex !== -1) {
-                // Cập nhật nội dung và thời gian
-                state.users[userIndex].mes = content;
-                state.users[userIndex].createAt = time;
+      if (userIndex !== -1) {
+        // Cập nhật nội dung và thời gian
+        state.users[userIndex].mes = content;
+        state.users[userIndex].createAt = time;
 
-                // Đưa user này lên đầu danh sách
-                const user = state.users.splice(userIndex, 1)[0];
-                state.users.unshift(user);
-            }
-        },
-        // Nhận danh sách tin nhắn cũ (history)
-        setMessages(state, action: PayloadAction<Message[]>) {
-            state.messages = action.payload;
-        },
-
-        addUser(state, action: PayloadAction<User>) {
-            state.users.push(action.payload);
-        },
-
-        setUsers(state, action: PayloadAction<User[]>) {
-            state.users = action.payload;
-        },
-
-        addRoom(state, action: PayloadAction<Room>) {
-            
-            const newRoomName = action.payload.roomName.trim();
-
-            const exitst = state.rooms.find(
-                (room) => room.roomName.trim() === newRoomName
-            );
-            if (!exitst) {
-                state.rooms.push({ ...action.payload, roomName: newRoomName });
-            }
-        },
-
-        setActiveChat(state, action: PayloadAction<{ id: string; type: "people" | "room" }>) {
-            console.log(`setActiveChat reducer received:`, action.payload);
-            state.activeChat = action.payload;
-        },
-        // kiểm tra xem có đang hoạt động hay không
-        updateUserStatus(state, action: PayloadAction<{ name: string; isOnline: boolean }>) {
-            const user = state.users.find((u) => u.name === action.payload.name);
-            if (user) {
-                user.isOnline = action.payload.isOnline;
-            }
-        },
+        // Đưa user này lên đầu danh sách
+        const user = state.users.splice(userIndex, 1)[0];
+        state.users.unshift(user);
+      }
+    },
+    // Nhận danh sách tin nhắn cũ (history)
+    setMessages(state, action: PayloadAction<Message[]>) {
+      state.messages = action.payload;
     },
 
+    addUser(state, action: PayloadAction<User>) {
+      state.users.push(action.payload);
+    },
+
+    setUsers(state, action: PayloadAction<User[]>) {
+      state.users = action.payload;
+    },
+
+    addRoom(state, action: PayloadAction<Room>) {
+      const newRoomName = action.payload.roomName.trim();
+
+      const exitst = state.rooms.find(
+        (room) => room.roomName.trim() === newRoomName
+      );
+      if (!exitst) {
+        state.rooms.push({ ...action.payload, roomName: newRoomName });
+      }
+    },
+
+    setActiveChat(
+      state,
+      action: PayloadAction<{ id: string; type: "people" | "room" }>
+    ) {
+      console.log(`setActiveChat reducer received:`, action.payload);
+      state.activeChat = action.payload;
+    },
+
+    // kiểm tra xem có đang hoạt động hay không
+    updateUserStatus(
+      state,
+      action: PayloadAction<{ name: string; isOnline: boolean }>
+    ) {
+      const user = state.users.find((u) => u.name === action.payload.name);
+      if (user) {
+        user.isOnline = action.payload.isOnline;
+      }
+    },
+
+    // xử lý thả cảm xúc
+    toggleReaction(
+      state,
+      action: PayloadAction<{ msgTime: string; msgUser: string; icon: string }>
+    ) {
+      const { msgTime, msgUser, icon } = action.payload;
+
+      // Tìm tin nhắn đang muốn thả tim
+      const message = state.messages.find(
+        (m) => m.time === msgTime && m.userId === msgUser
+      );
+
+      if (message) {
+        // Logic: Nếu đang thả icon giống hệt cái cũ -> Bỏ tim (Toggle off)
+        if (message.myReaction === icon) {
+          message.myReaction = undefined;
+        } else {
+          // Nếu chưa thả hoặc thả icon khác -> Cập nhật icon mới
+          message.myReaction = icon;
+        }
+      }
+    },
+  },
 });
 
-export const {addMessage, setUsers, setMessages, addUser, addRoom, setActiveChat, updateUserStatus} =
-    chatSlice.actions;
+export const {
+  addMessage,
+  setUsers,
+  setMessages,
+  addUser,
+  addRoom,
+  setActiveChat,
+  updateUserStatus,
+  toggleReaction,
+} = chatSlice.actions;
 
 export default chatSlice.reducer;
