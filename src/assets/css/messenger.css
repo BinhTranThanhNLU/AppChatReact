@@ -781,3 +781,48 @@ body {
 .forward-item button:hover {
     background: #0073e6;
 }
+
+
+/* mới thêm vào  */
+/* Container bảng sticker */
+.sticker-picker-container {
+    position: absolute;
+    bottom: 50px; /* Hiển thị phía trên ô input */
+    right: 0;
+    width: 250px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+    border: 1px solid #e4e6eb;
+    padding: 10px;
+    z-index: 100;
+}
+
+/* Lưới hiển thị các sticker */
+.sticker-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 cột */
+    gap: 10px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.sticker-option {
+    width: 100%;
+    height: 60px;
+    object-fit: contain;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.sticker-option:hover {
+    transform: scale(1.1);
+    background-color: #f0f2f5;
+    border-radius: 8px;
+}
+
+/* CSS để ẩn bong bóng chat khi là Sticker trong MessageItem */
+.is-sticker {
+    background: none !important;
+    box-shadow: none !important;
+}

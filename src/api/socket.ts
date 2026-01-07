@@ -10,6 +10,14 @@ import {
   updateUserStatus,
 } from "../features/chat/ChatSlice";
 
+const checkMsgType = (content: string): "text" | "image" | "sticker" => {
+  if (typeof content !== "string") return "text";
+  if (content.startsWith("data:image")) return "image";
+  // Nếu là link ảnh gif/png hoặc từ kho sticker google
+  if (content.match(/\.(jpeg|jpg|gif|png|webp)$/i) || content.includes("gstatic.com")) return "sticker";
+  return "text";
+};
+
 let socket: WebSocket | null = null;
 let reconnectTimeout: NodeJS.Timeout | null = null;
 let pendingUserSearch: string | null = null;
@@ -61,7 +69,6 @@ export const connectSocket = (onOpen?: () => void) => {
           }
         }
       }
-
       //Kiểm tra username
       if (!username) {
         console.error("Không tìm thấy username để lưu RE_LOGIN_CODE");
@@ -116,7 +123,7 @@ export const connectSocket = (onOpen?: () => void) => {
         return {
           userId: msg.name,
           content: msg.mes,
-          msgType: isImage ? "image" : "text",
+          msgType: checkMsgType(msg.mes),
           time: msg.createAt || new Date().toISOString(),
         };
       });
@@ -172,17 +179,12 @@ export const connectSocket = (onOpen?: () => void) => {
       if (currentUser && res.data.name === currentUser) {
         return;
       }
-      const isImage =
-        typeof res.data.mes === "string" &&
-        res.data.mes.startsWith("data:image");
-
       const newMessage = {
         userId: res.data.name,
         content: res.data.mes,
-        msgType: isImage ? ("image" as const) : ("text" as const),
+        msgType: checkMsgType(res.data.mes), // Gọi hàm checkMsgType ở trên
         time: new Date().toISOString(),
       };
-
       store.dispatch(addMessage(newMessage));
       return;
     }
@@ -236,7 +238,7 @@ export const connectSocket = (onOpen?: () => void) => {
         return {
           userId: message.name, // API trả về field 'name' là người gửi
           content: message.mes,
-          msgType: isImage ? "image" : "text",
+          msgType: checkMsgType(message.mes),
           time: message.createAt || new Date().toISOString(),
         };
       });

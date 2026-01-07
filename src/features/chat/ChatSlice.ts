@@ -9,7 +9,7 @@ export interface Message {
   to?: string; // Người nhận
   content: string;
   time: string;
-  msgType?: "text" | "image";
+  msgType?: "text" | "image"| "sticker";
   myReaction?: string;
 }
 

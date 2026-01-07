@@ -3,11 +3,11 @@ import { Message } from "../../chat/ChatSlice";
 import { Smile, Share2 } from "lucide-react"; // Thêm Share2
 
 const MessageItem = ({
-                         msg,
-                         currentUser,
-                         onReact,
-                         onForward, // Thêm prop xử lý chuyển tiếp
-                     }: {
+    msg,
+    currentUser,
+    onReact,
+    onForward, // Thêm prop xử lý chuyển tiếp
+}: {
     msg: Message;
     currentUser: string;
     onReact: (msg: Message, icon: string) => void;
@@ -33,20 +33,16 @@ const MessageItem = ({
                     style={{ flexDirection: isMe ? "row-reverse" : "row" }}
                 >
                     {/* 1. NỘI DUNG TIN NHẮN */}
-                    <div className="message-bubble relative">
+                    {/* Thêm class 'is-sticker' nếu msgType là sticker */}
+                    <div className={`message-bubble relative ${msg.msgType === "sticker" ? "is-sticker" : ""}`}>
                         {msg.msgType === "image" ? (
-                            <img
-                                src={msg.content}
-                                alt="img"
-                                style={{ maxWidth: "220px", borderRadius: "12px" }}
-                            />
+                            <img src={msg.content} alt="img" style={{ maxWidth: "220px", borderRadius: "12px" }} />
+                        ) : msg.msgType === "sticker" ? (
+                            <img src={msg.content} alt="sticker" style={{ width: "120px", height: "120px", objectFit: "contain" }} />
                         ) : (
                             msg.content
                         )}
-
-                        {msg.myReaction && (
-                            <div className="my-reaction-badge">{msg.myReaction}</div>
-                        )}
+                        {msg.myReaction && (<div className="my-reaction-badge">{msg.myReaction}</div>)}
                     </div>
 
                     {/* 2. CỤM NÚT ĐIỀU KHIỂN (SMILE & FORWARD) */}
@@ -82,8 +78,8 @@ const MessageItem = ({
                                             setShowPicker(false);
                                         }}
                                     >
-                    {emoji}
-                  </span>
+                                        {emoji}
+                                    </span>
                                 ))}
                             </div>
                         )}

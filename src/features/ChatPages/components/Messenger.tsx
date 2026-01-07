@@ -18,32 +18,40 @@ import { RootState } from "../../../stores/Store";
 import { VideoCallModal } from "../../../features/ChatPages/components/VideoCallModal";
 import MessageItem from "./MessageItem";
 
+
 interface MessengerProps {
     messages: Message[];
     currentUser: string;
     currentChatUser: string | null;
     chatType: "people" | "room";
 }
+const STICKER_LIST = [
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f973/512.gif",
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f60d/512.gif",
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f923/512.gif",
+    "https://fonts.gstatic.com/s/e/notoemoji/latest/1f44b/512.gif",
+];
 
 const Messenger: React.FC<MessengerProps> = ({
-                                                 messages,
-                                                 currentUser,
-                                                 currentChatUser,
-                                                 chatType,
-                                             }) => {
+    messages,
+    currentUser,
+    currentChatUser,
+    chatType,
+}) => {
     const [inputMsg, setInputMsg] = useState("");
+    const [showStickers, setShowStickers] = useState(false);
     const endRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const stickerRef = useRef<HTMLDivElement>(null);
     const dispatch = useDispatch();
+    const users = useSelector((state: RootState) => state.chat.users);
+    const rooms = useSelector((state: RootState) => state.chat.rooms);
 
     // STATE CHO CHUYỂN TIẾP
     const [forwardData, setForwardData] = useState<{ show: boolean; msg: Message | null }>({
         show: false,
         msg: null,
     });
-
-    const users = useSelector((state: RootState) => state.chat.users);
-    const rooms = useSelector((state: RootState) => state.chat.rooms);
 
     // VIDEO CALL STATE & LOGIC (GIỮ NGUYÊN TỪ FILE GỐC CỦA BẠN)
     const [isCalling, setIsCalling] = useState(false);
@@ -104,6 +112,16 @@ const Messenger: React.FC<MessengerProps> = ({
         setRemoteStream(null);
         setIsCalling(false);
     };
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            // Nếu click không nằm trong stickerRef thì đóng bảng
+            if (stickerRef.current && !stickerRef.current.contains(event.target as Node)) {
+                setShowStickers(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
 
     useEffect(() => {
         const handleSignal = (e: any) => {
@@ -141,6 +159,20 @@ const Messenger: React.FC<MessengerProps> = ({
         sendSocket({ action: "onchat", data: { event: "SEND_CHAT", data: { type: chatType, to: currentChatUser, mes: trimmedMsg } } });
         dispatch(addMessage(messageData));
         setInputMsg("");
+    };
+    const handleSendSticker = (url: string) => {
+        if (!currentChatUser) return;
+        const messageData: Message = {
+            userId: currentUser,
+            to: currentChatUser,
+            content: url,
+            msgType: "sticker", // Loại tin nhắn mới
+            time: new Date().toISOString()
+        };
+        // Gửi qua socket giống như chat text
+        sendSocket({ action: "onchat", data: { event: "SEND_CHAT", data: { type: chatType, to: currentChatUser, mes: url } } });
+        dispatch(addMessage(messageData));
+        setShowStickers(false); // Gửi xong thì đóng bảng
     };
 
     const handleSelectImage = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -277,7 +309,7 @@ const Messenger: React.FC<MessengerProps> = ({
                     <input ref={fileInputRef} type="file" accept="image/*" hidden onChange={handleSelectImage} />
                     <Mic size={20} />
                 </div>
-                <div className="input-wrapper">
+               <div className="input-wrapper" style={{ position: 'relative' }} ref={stickerRef}>
                     <input
                         className="chat-input"
                         placeholder="Aa"
@@ -285,7 +317,34 @@ const Messenger: React.FC<MessengerProps> = ({
                         onChange={(e) => setInputMsg(e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && handleSend()}
                     />
-                    <Smile className="smile-icon" size={20} />
+                    
+                    <Smile 
+                        className="smile-icon" 
+                        size={20} 
+                        onClick={() => setShowStickers(!showStickers)}
+                        style={{ cursor: "pointer", color: showStickers ? "#0084ff" : "inherit" }}
+                    />
+
+                    {/* STICKER PICKER POPUP */}
+                    {showStickers && (
+                        <div style={{
+                            position: 'absolute', bottom: '100%', right: 0, marginBottom: '10px',
+                            background: 'white', border: '1px solid #ddd', borderRadius: '12px',
+                            padding: '12px', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)',
+                            gap: '10px', boxShadow: '0 4px 15px rgba(0,0,0,0.15)', zIndex: 1000,
+                            width: '220px'
+                        }}>
+                            {STICKER_LIST.map((url, idx) => (
+                                <img 
+                                    key={idx} src={url} alt="sticker"
+                                    style={{ width: '60px', height: '60px', cursor: 'pointer', borderRadius: '8px' }}
+                                    onClick={() => handleSendSticker(url)}
+                                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f0f2f5'}
+                                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                                />
+                            ))}
+                        </div>
+                    )}
                 </div>
                 <div onClick={handleSend} className="like-btn">
                     {inputMsg.trim() ? <Send size={20} /> : <ThumbsUp size={20} />}
