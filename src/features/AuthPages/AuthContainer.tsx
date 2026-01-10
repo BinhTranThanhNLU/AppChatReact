@@ -1,5 +1,5 @@
 // src/features/auth/AuthContainer.tsx
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import LoginScreen from './LoginScreen';
 import RegisterScreen from './RegisterScreen';
 
@@ -15,9 +15,9 @@ const AuthContainer: React.FC = () => {
     return (
         <div className="auth-page-container">
             {currentForm === 'login' ? (
-                <LoginScreen switchToRegister={() => toggleForm('register')} />
+                <LoginScreen switchToRegister={() => toggleForm('register')}/>
             ) : (
-                <RegisterScreen switchToLogin={() => toggleForm('login')} />
+                <RegisterScreen switchToLogin={() => toggleForm('login')}/>
             )}
         </div>
     );
