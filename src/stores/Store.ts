@@ -1,14 +1,36 @@
 import { configureStore, combineReducers } from "@reduxjs/toolkit";
-import { persistStore, persistReducer } from "redux-persist";
+import { persistStore, persistReducer, createTransform } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 import chatReducer from "../features/chat/ChatSlice";
 import authReducer from "../features/chat/AuthSlice";
+import { transform } from "typescript";
+
+const chatTransform = createTransform(
+  // Transform khi lưu vào storage
+  (inboundState:  any) => {
+    return {
+      users: inboundState.users,
+      rooms: inboundState.rooms,
+      activeChat: inboundState.activeChat, // ✅ LƯU activeChat
+      // Không lưu messages để tiết kiệm dung lượng
+    };
+  },
+  // Transform khi lấy ra từ storage
+  (outboundState: any) => {
+    return {
+      ... outboundState,
+      messages: [], // Reset messages khi reload
+    };
+  },
+  { whitelist: ['chat'] }
+);
 
 // Config persist
 const persistConfig = {
     key: 'root',
     storage,
-    whitelist: ['auth'], // Persist cả chat và auth
+    whitelist: ['auth', 'chat'], // Persist cả chat và auth
+    transform: [chatTransform],
 };
 
 // Combine reducers

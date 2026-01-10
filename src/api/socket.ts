@@ -14,7 +14,11 @@ const checkMsgType = (content: string): "text" | "image" | "sticker" => {
   if (typeof content !== "string") return "text";
   if (content.startsWith("data:image")) return "image";
   // Nếu là link ảnh gif/png hoặc từ kho sticker google
-  if (content.match(/\.(jpeg|jpg|gif|png|webp)$/i) || content.includes("gstatic.com")) return "sticker";
+  if (
+    content.match(/\.(jpeg|jpg|gif|png|webp)$/i) ||
+    content.includes("gstatic.com")
+  )
+    return "sticker";
   return "text";
 };
 
@@ -106,8 +110,19 @@ export const connectSocket = (onOpen?: () => void) => {
         return;
       }
 
-      store.dispatch(setUsers(res.data));
-      console.log("Đã cập nhật user list vào Redux, total:", res.data.length);
+      //LỌC BỎ rooms khỏi danh sách users
+      const currentRooms = store.getState().chat.rooms;
+      const roomNames = new Set(currentRooms.map((r) => r.roomName));
+
+      const filteredUsers = res.data.filter((user: any) => {
+        return !roomNames.has(user.name); // Loại bỏ nếu trùng tên room
+      });
+
+      store.dispatch(setUsers(filteredUsers));
+      console.log(
+        "Đã cập nhật user list vào Redux, total:",
+        filteredUsers.length
+      );
       return;
     }
 
@@ -228,7 +243,9 @@ export const connectSocket = (onOpen?: () => void) => {
     if (res.event === "GET_ROOM_CHAT_MES") {
       console.log("Lịch sử tin nhắn Room:", res.data);
 
-      const rawMessages = Array.isArray(res.data.chatData) ? res.data.chatData : [];
+      const rawMessages = Array.isArray(res.data.chatData)
+        ? res.data.chatData
+        : [];
 
       const mappedMessages = rawMessages.map((message: any) => {
         // Kiểm tra xem tin nhắn có phải là ảnh base64 không

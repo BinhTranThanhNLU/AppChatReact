@@ -56,7 +56,7 @@ const MessengerScreen: React.FC = () => {
       )}&background=random`,
       type: "room" as const,
     }));
-    
+
     const allChats = [...roomChats, ...peopleChats];
 
     const uniqueChats = Array.from(
@@ -64,7 +64,6 @@ const MessengerScreen: React.FC = () => {
     );
 
     return uniqueChats;
-
   }, [users, rooms, activeUserId, selectedType]);
 
   useEffect(() => {
@@ -122,9 +121,17 @@ const MessengerScreen: React.FC = () => {
     }
   }, [activeChatRedux, dispatch]);
 
+  useEffect(() => {
+    // Restore activeChat từ Redux Persist khi component mount
+    if (activeChatRedux && !activeUserId) {
+      console.log("Restoring activeChat from Redux:", activeChatRedux);
+      setActiveUserId(activeChatRedux.id);
+      setSelectedType(activeChatRedux.type);
+    }
+  }, [activeChatRedux]); // Chỉ chạy 1 lần khi mount
+
   // Xử lý khi bấm vào user va room
   const handleSelectChat = (id: string, type: "people" | "room") => {
-
     // 1. Cập nhật state UI
     setActiveUserId(id);
     setSelectedType(type);
