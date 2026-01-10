@@ -22,11 +22,6 @@ const OptionsMenu: React.FC<OptionsMenuProps> = ({ onClose }) => {
     <div className="options-menu">
       {mode === "default" && (
         <>
-          <div className="menu-item">
-            <MessageCircle size={18} />
-            <span>Tin nhắn đang chờ</span>
-          </div>
-
           <div className="menu-item" onClick={() => setMode("create-group")}>
             <UserPlus size={18} />
             <span>Tạo nhóm</span>
@@ -39,15 +34,6 @@ const OptionsMenu: React.FC<OptionsMenuProps> = ({ onClose }) => {
 
           <div className="menu-divider" />
 
-          <div className="menu-item has-arrow">
-            <Shield size={18} />
-            <span>Quyền riêng tư và an toàn</span>
-          </div>
-
-          <div className="menu-item">
-            <HelpCircle size={18} />
-            <span>Trợ giúp</span>
-          </div>
         </>
       )}
 

@@ -304,7 +304,7 @@ export const connectSocket = (onOpen?: () => void) => {
                 const userName = pendingUserSearch;
 
                 if (!userName || typeof userName !== "string") {
-                    console.error("User name không hợp lệ:", userName);
+                    console.error("Tên tài Khoản  không hợp lệ:", userName);
                     return;
                 }
 
@@ -315,9 +315,9 @@ export const connectSocket = (onOpen?: () => void) => {
 
                 if (!exists) {
                     store.dispatch(addUser(userFound));
-                    console.log("Đã thêm user tìm thấy vào danh sách:", userFound.name);
+                    console.log("Đã thêm người dùng tìm thấy vào danh sách:", userFound.name);
                 } else {
-                    console.log("User đã có trong danh sách:", userFound.name);
+                    console.log("Người dùng đã có trong danh sách:", userFound.name);
                 }
 
                 pendingUserSearch = null;

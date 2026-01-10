@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, {useState, useEffect, useRef, useMemo} from "react";
 import {
     Send,
     Smile,
@@ -11,11 +11,11 @@ import {
     Mic,
     X, // Thêm icon X để đóng modal
 } from "lucide-react";
-import { useDispatch, useSelector } from "react-redux";
-import { addMessage, Message, toggleReaction } from "../../../features/chat/ChatSlice";
-import { sendSocket } from "../../../api/socket";
-import { RootState } from "../../../stores/Store";
-import { VideoCallModal } from "../../../features/ChatPages/components/VideoCallModal";
+import {useDispatch, useSelector} from "react-redux";
+import {addMessage, Message, toggleReaction} from "../../../features/chat/ChatSlice";
+import {sendSocket} from "../../../api/socket";
+import {RootState} from "../../../stores/Store";
+import {VideoCallModal} from "../../../features/ChatPages/components/VideoCallModal";
 import MessageItem from "./MessageItem";
 
 
@@ -25,6 +25,7 @@ interface MessengerProps {
     currentChatUser: string | null;
     chatType: "people" | "room";
 }
+
 const STICKER_LIST = [
     "https://fonts.gstatic.com/s/e/notoemoji/latest/1f973/512.gif",
     "https://fonts.gstatic.com/s/e/notoemoji/latest/1f60d/512.gif",
@@ -33,11 +34,11 @@ const STICKER_LIST = [
 ];
 
 const Messenger: React.FC<MessengerProps> = ({
-    messages,
-    currentUser,
-    currentChatUser,
-    chatType,
-}) => {
+                                                 messages,
+                                                 currentUser,
+                                                 currentChatUser,
+                                                 chatType,
+                                             }) => {
     const [inputMsg, setInputMsg] = useState("");
     const [showStickers, setShowStickers] = useState(false);
     const endRef = useRef<HTMLDivElement>(null);
@@ -58,17 +59,19 @@ const Messenger: React.FC<MessengerProps> = ({
     const [localStream, setLocalStream] = useState<MediaStream | null>(null);
     const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
     const peerConnection = useRef<RTCPeerConnection | null>(null);
-    const iceServers = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }] };
+    const iceServers = {iceServers: [{urls: "stun:stun.l.google.com:19302"}]};
 
     const createPeerConnection = (targetUser: string, stream: MediaStream) => {
         const pc = new RTCPeerConnection(iceServers);
         stream.getTracks().forEach((track) => pc.addTrack(track, stream));
-        pc.ontrack = (e) => { if (e.streams && e.streams[0]) setRemoteStream(e.streams[0]); };
+        pc.ontrack = (e) => {
+            if (e.streams && e.streams[0]) setRemoteStream(e.streams[0]);
+        };
         pc.onicecandidate = (e) => {
             if (e.candidate && targetUser) {
                 sendSocket({
                     action: "onchat",
-                    data: { event: "VIDEO_CALL_SIGNAL", data: { to: targetUser, signalData: { candidate: e.candidate } } },
+                    data: {event: "VIDEO_CALL_SIGNAL", data: {to: targetUser, signalData: {candidate: e.candidate}}},
                 });
             }
         };
@@ -79,29 +82,36 @@ const Messenger: React.FC<MessengerProps> = ({
     const startVideoCall = async () => {
         if (!currentChatUser) return;
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            const stream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
             setLocalStream(stream);
             setIsCalling(true);
             const pc = createPeerConnection(currentChatUser, stream);
             const offer = await pc.createOffer();
             await pc.setLocalDescription(offer);
-            sendSocket({ action: "onchat", data: { event: "VIDEO_CALL_SIGNAL", data: { to: currentChatUser, signalData: offer } } });
-        } catch (err) { alert("Không thể truy cập Camera/Microphone!"); }
+            sendSocket({
+                action: "onchat",
+                data: {event: "VIDEO_CALL_SIGNAL", data: {to: currentChatUser, signalData: offer}}
+            });
+        } catch (err) {
+            alert("Không thể truy cập Camera/Microphone!");
+        }
     };
 
     const handleReceiveCall = async (from: string, offer: any) => {
         const confirmCall = window.confirm(`Cuộc gọi đến từ ${from}. Bạn có muốn nghe không?`);
         if (!confirmCall) return;
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            const stream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
             setLocalStream(stream);
             setIsCalling(true);
             const pc = createPeerConnection(from, stream);
             await pc.setRemoteDescription(new RTCSessionDescription(offer));
             const answer = await pc.createAnswer();
             await pc.setLocalDescription(answer);
-            sendSocket({ action: "onchat", data: { event: "VIDEO_CALL_SIGNAL", data: { to: from, signalData: answer } } });
-        } catch (err) { console.error(err); }
+            sendSocket({action: "onchat", data: {event: "VIDEO_CALL_SIGNAL", data: {to: from, signalData: answer}}});
+        } catch (err) {
+            console.error(err);
+        }
     };
 
     const endCall = () => {
@@ -125,7 +135,7 @@ const Messenger: React.FC<MessengerProps> = ({
 
     useEffect(() => {
         const handleSignal = (e: any) => {
-            const { from, signalData } = e.detail;
+            const {from, signalData} = e.detail;
             if (signalData.type === "offer") handleReceiveCall(from, signalData);
             else if (signalData.type === "answer") peerConnection.current?.setRemoteDescription(new RTCSessionDescription(signalData));
             else if (signalData.candidate) peerConnection.current?.addIceCandidate(new RTCIceCandidate(signalData.candidate));
@@ -149,14 +159,22 @@ const Messenger: React.FC<MessengerProps> = ({
     }, [messages, currentUser, currentChatUser, chatType]);
 
     useEffect(() => {
-        endRef.current?.scrollIntoView({ behavior: "smooth" });
+        endRef.current?.scrollIntoView({behavior: "smooth"});
     }, [sortedMessages]);
 
     const handleSend = () => {
         const trimmedMsg = inputMsg.trim();
         if (!trimmedMsg || !currentChatUser) return;
-        const messageData: Message = { userId: currentUser, to: currentChatUser, content: trimmedMsg, time: new Date().toISOString() };
-        sendSocket({ action: "onchat", data: { event: "SEND_CHAT", data: { type: chatType, to: currentChatUser, mes: trimmedMsg } } });
+        const messageData: Message = {
+            userId: currentUser,
+            to: currentChatUser,
+            content: trimmedMsg,
+            time: new Date().toISOString()
+        };
+        sendSocket({
+            action: "onchat",
+            data: {event: "SEND_CHAT", data: {type: chatType, to: currentChatUser, mes: trimmedMsg}}
+        });
         dispatch(addMessage(messageData));
         setInputMsg("");
     };
@@ -170,7 +188,10 @@ const Messenger: React.FC<MessengerProps> = ({
             time: new Date().toISOString()
         };
         // Gửi qua socket giống như chat text
-        sendSocket({ action: "onchat", data: { event: "SEND_CHAT", data: { type: chatType, to: currentChatUser, mes: url } } });
+        sendSocket({
+            action: "onchat",
+            data: {event: "SEND_CHAT", data: {type: chatType, to: currentChatUser, mes: url}}
+        });
         dispatch(addMessage(messageData));
         setShowStickers(false); // Gửi xong thì đóng bảng
     };
@@ -181,8 +202,16 @@ const Messenger: React.FC<MessengerProps> = ({
         const reader = new FileReader();
         reader.onload = () => {
             const base64 = reader.result as string;
-            sendSocket({ action: "onchat", data: { event: "SEND_CHAT", data: { type: chatType, to: currentChatUser, mes: base64 } } });
-            dispatch(addMessage({ userId: currentUser, content: base64, msgType: "image", time: new Date().toISOString() }));
+            sendSocket({
+                action: "onchat",
+                data: {event: "SEND_CHAT", data: {type: chatType, to: currentChatUser, mes: base64}}
+            });
+            dispatch(addMessage({
+                userId: currentUser,
+                content: base64,
+                msgType: "image",
+                time: new Date().toISOString()
+            }));
         };
         reader.readAsDataURL(file);
         e.target.value = "";
@@ -195,7 +224,7 @@ const Messenger: React.FC<MessengerProps> = ({
     }, [users, currentChatUser, chatType]);
 
     const handleLocalReaction = (targetMsg: Message, icon: string) => {
-        dispatch(toggleReaction({ msgTime: targetMsg.time, msgUser: targetMsg.userId, icon: icon }));
+        dispatch(toggleReaction({msgTime: targetMsg.time, msgUser: targetMsg.userId, icon: icon}));
     };
 
     // --- LOGIC XỬ LÝ CHUYỂN TIẾP ---
@@ -210,7 +239,7 @@ const Messenger: React.FC<MessengerProps> = ({
             action: "onchat",
             data: {
                 event: "SEND_CHAT",
-                data: { type: type, to: targetId, mes: contentToForward },
+                data: {type: type, to: targetId, mes: contentToForward},
             },
         });
 
@@ -228,12 +257,12 @@ const Messenger: React.FC<MessengerProps> = ({
         }
 
         alert(`Đã chuyển tiếp đến ${targetId}`);
-        setForwardData({ show: false, msg: null });
+        setForwardData({show: false, msg: null});
     };
 
     return (
         <div className="main-chat">
-            {isCalling && <VideoCallModal stream={localStream} remoteStream={remoteStream} onClose={endCall} />}
+            {isCalling && <VideoCallModal stream={localStream} remoteStream={remoteStream} onClose={endCall}/>}
 
             {/* MODAL CHUYỂN TIẾP */}
             {forwardData.show && (
@@ -241,10 +270,11 @@ const Messenger: React.FC<MessengerProps> = ({
                     <div className="forward-modal">
                         <div className="forward-header">
                             <h3>Chuyển tiếp tin nhắn</h3>
-                            <X className="close-btn" onClick={() => setForwardData({ show: false, msg: null })} />
+                            <X className="close-btn" onClick={() => setForwardData({show: false, msg: null})}/>
                         </div>
                         <div className="forward-body">
-                            <p className="forward-preview">Nội dung: <i>{forwardData.msg?.content.substring(0, 30)}...</i></p>
+                            <p className="forward-preview">Nội
+                                dung: <i>{forwardData.msg?.content.substring(0, 30)}...</i></p>
 
                             <div className="forward-section">
                                 <h4>Người dùng</h4>
@@ -279,13 +309,15 @@ const Messenger: React.FC<MessengerProps> = ({
                     />
                     <div className="header-details">
                         <h3>{currentChatUser}</h3>
-                        {chatType === "people" && <p style={{ color: isOnline ? "#31a24c" : "#65676b" }}>{isOnline ? "Đang hoạt động" : "Không hoạt động"}</p>}
+                        {chatType === "people" &&
+                            <p style={{color: isOnline ? "#31a24c" : "#65676b"}}>{isOnline ? "Đang hoạt động" : "Không hoạt động"}</p>}
                     </div>
                 </div>
                 <div className="header-icons">
-                    <Phone className="header-icon" size={20} />
-                    <Video className="header-icon" size={20} onClick={startVideoCall} style={{ cursor: "pointer", color: "#0084ff" }} />
-                    <Info className="header-icon" size={20} />
+                    <Phone className="header-icon" size={20}/>
+                    <Video className="header-icon" size={20} onClick={startVideoCall}
+                           style={{cursor: "pointer", color: "#0084ff"}}/>
+                    <Info className="header-icon" size={20}/>
                 </div>
             </div>
 
@@ -296,20 +328,20 @@ const Messenger: React.FC<MessengerProps> = ({
                         msg={msg}
                         currentUser={currentUser}
                         onReact={handleLocalReaction}
-                        onForward={(m) => setForwardData({ show: true, msg: m })} // Truyền hàm mở modal
+                        onForward={(m) => setForwardData({show: true, msg: m})} // Truyền hàm mở modal
                     />
                 ))}
-                <div ref={endRef} />
+                <div ref={endRef}/>
             </div>
 
             <div className="chat-footer">
                 <div className="footer-actions">
-                    <MoreHorizontal size={20} />
-                    <ImageIcon size={20} style={{ cursor: "pointer" }} onClick={() => fileInputRef.current?.click()} />
-                    <input ref={fileInputRef} type="file" accept="image/*" hidden onChange={handleSelectImage} />
-                    <Mic size={20} />
+                    <MoreHorizontal size={20}/>
+                    <ImageIcon size={20} style={{cursor: "pointer"}} onClick={() => fileInputRef.current?.click()}/>
+                    <input ref={fileInputRef} type="file" accept="image/*" hidden onChange={handleSelectImage}/>
+                    <Mic size={20}/>
                 </div>
-               <div className="input-wrapper" style={{ position: 'relative' }} ref={stickerRef}>
+                <div className="input-wrapper" style={{position: 'relative'}} ref={stickerRef}>
                     <input
                         className="chat-input"
                         placeholder="Aa"
@@ -317,12 +349,12 @@ const Messenger: React.FC<MessengerProps> = ({
                         onChange={(e) => setInputMsg(e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && handleSend()}
                     />
-                    
-                    <Smile 
-                        className="smile-icon" 
-                        size={20} 
+
+                    <Smile
+                        className="smile-icon"
+                        size={20}
                         onClick={() => setShowStickers(!showStickers)}
-                        style={{ cursor: "pointer", color: showStickers ? "#0084ff" : "inherit" }}
+                        style={{cursor: "pointer", color: showStickers ? "#0084ff" : "inherit"}}
                     />
 
                     {/* STICKER PICKER POPUP */}
@@ -335,9 +367,9 @@ const Messenger: React.FC<MessengerProps> = ({
                             width: '220px'
                         }}>
                             {STICKER_LIST.map((url, idx) => (
-                                <img 
+                                <img
                                     key={idx} src={url} alt="sticker"
-                                    style={{ width: '60px', height: '60px', cursor: 'pointer', borderRadius: '8px' }}
+                                    style={{width: '60px', height: '60px', cursor: 'pointer', borderRadius: '8px'}}
                                     onClick={() => handleSendSticker(url)}
                                     onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f0f2f5'}
                                     onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
@@ -347,7 +379,7 @@ const Messenger: React.FC<MessengerProps> = ({
                     )}
                 </div>
                 <div onClick={handleSend} className="like-btn">
-                    {inputMsg.trim() ? <Send size={20} /> : <ThumbsUp size={20} />}
+                    {inputMsg.trim() ? <Send size={20}/> : <ThumbsUp size={20}/>}
                 </div>
             </div>
         </div>
