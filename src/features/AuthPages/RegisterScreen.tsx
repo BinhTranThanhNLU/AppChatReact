@@ -70,7 +70,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({switchToLogin}) => {
 
     return (
         <div className="auth-form-container">
-            <h2>Sign Up</h2>
+            <h2>Đăng Ký</h2>
             <form className="auth-form" onSubmit={handleSubmit}>
                 {error && <p className="error-message">{error}</p>}
 
@@ -79,7 +79,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({switchToLogin}) => {
                     <FontAwesomeIcon icon={faUser} className="input-icon"/>
                     <input
                         type="text"
-                        placeholder="Username"
+                        placeholder="Tên Tài Khoản"
                         value={username}
                         onChange={handleInputChange(setUsername)}
                         required
@@ -92,7 +92,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({switchToLogin}) => {
                     <FontAwesomeIcon icon={faLock} className="input-icon"/>
                     <input
                         type="password"
-                        placeholder="Password"
+                        placeholder="Mật Khẩu"
                         value={password}
                         onChange={handleInputChange(setPassword)}
                         required
@@ -102,15 +102,15 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({switchToLogin}) => {
 
                 {/* Submit Button */}
                 <button type="submit" className="auth-button" disabled={isLoading}>
-                    {isLoading ? "CREATING ACCOUNT..." : "SIGN UP"}
+                    {isLoading ? "Tạo Tài Khoản..." : "Đăng Ký"}
                 </button>
             </form>
 
             {/* Switch to Login */}
             <div className="signup-link-container">
-                Already have an account?
+                Đã có tài khoản?
                 <a href="#" className="signup-link" onClick={switchToLogin}>
-                    Log in now
+                    Đăng Nhập ngay
                 </a>
             </div>
         </div>
