@@ -227,7 +227,8 @@ export const connectSocket = (onOpen?: () => void) => {
     //7. GET ROOM CHAT MES: nhận lịch sử tin nhắn của room
     if (res.event === "GET_ROOM_CHAT_MES") {
       console.log("Lịch sử tin nhắn Room:", res.data);
-      const rawMessages = Array.isArray(res.data) ? res.data : [];
+
+      const rawMessages = Array.isArray(res.data.chatData) ? res.data.chatData : [];
 
       const mappedMessages = rawMessages.map((message: any) => {
         // Kiểm tra xem tin nhắn có phải là ảnh base64 không

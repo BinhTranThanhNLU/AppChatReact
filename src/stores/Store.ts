@@ -8,7 +8,7 @@ import authReducer from "../features/chat/AuthSlice";
 const persistConfig = {
     key: 'root',
     storage,
-    whitelist: ['chat', 'auth'], // Persist cả chat và auth
+    whitelist: ['auth'], // Persist cả chat và auth
 };
 
 // Combine reducers
